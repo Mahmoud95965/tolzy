@@ -108,7 +108,7 @@ export const generateCategorySEO = (category: string, toolCount: number) => {
     "@type": "CollectionPage",
     "name": title,
     "description": description,
-    "url": `https://tolzy.vercel.app/tools?category=${category}`,
+    "url": `https://www.tolzy.me/tools?category=${category}`,
     "numberOfItems": toolCount,
     "about": {
       "@type": "Thing",
@@ -163,7 +163,7 @@ export const generateOrganizationData = () => {
     "name": "Tolzy",
     "alternateName": ["Tolzy Tools", "أدوات تولزي"],
     "url": "https://tolzy.vercel.app",
-    "logo": "https://tolzy.vercel.app/src/Zakerly.png",
+    "logo": "https://www.tolzy.me/src/Zakerly.png",
     "description": "أفضل منصة عربية لأدوات الذكاء الاصطناعي والأدوات التعليمية المجانية - اكتشف ChatGPT, Gemini, Midjourney وأكثر من 150 أداة",
     "contactPoint": {
       "@type": "ContactPoint",
@@ -194,7 +194,7 @@ export const generateWebPageData = (title: string, description: string, url: str
       "name": "Tolzy",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://tolzy.vercel.app/src/Zakerly.png"
+        "url": "https://www.tolzy.me/src/Zakerly.png"
       }
     }
   };

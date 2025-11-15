@@ -112,10 +112,10 @@
       "has": [
         {
           "type": "host",
-          "value": "devora-tools.vercel.app"
+          "value": "tolzy.me"
         }
       ],
-      "destination": "https://tolzy.vercel.app/:path*",
+      "destination": "https://www.tolzy.me/:path*",
       "permanent": true
     },
     {
@@ -126,7 +126,7 @@
           "value": "neovex.vercel.app"
         }
       ],
-      "destination": "https://tolzy.vercel.app/:path*",
+      "destination": "https://www.tolzy.me/:path*",
       "permanent": true
     }
   ]

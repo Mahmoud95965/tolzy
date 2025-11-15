@@ -220,7 +220,7 @@ const TolzyAIChat: React.FC = () => {
 
   // دالة لتحويل النصوص إلى روابط قابلة للنقر
   const renderMessageContent = (content: string) => {
-    // البحث عن روابط الأدوات في النص (مثل: /tools/123 أو https://tolzy.vercel.app/tools/123)
+    // البحث عن روابط الأدوات في النص (مثل: /tools/123 أو https://www.tolzy.me/tools/123)
     const toolLinkRegex = /(?:https?:\/\/[^\s]+)?\/tools\/([a-zA-Z0-9-]+)/g;
     // البحث عن روابط خارجية
     const urlRegex = /(https?:\/\/[^\s]+)/g;

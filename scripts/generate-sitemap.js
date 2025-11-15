@@ -20,7 +20,7 @@ const staticPages = [
 
 // الدومينات المتاحة
 const domains = [
-  'https://devora-tools.vercel.app',
+  'https://tolzy.me',
   'https://tolzy.vercel.app',
   'https://neovex.vercel.app'
 ];
