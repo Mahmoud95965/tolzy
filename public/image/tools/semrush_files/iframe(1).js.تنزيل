@@ -1,0 +1,123 @@
+(() => {
+                let link = document.createElement('link');                    
+                link.type = 'text/css';
+                link.rel = 'stylesheet';
+                link.href = 'https://a.plerdy.com/public/css/iframe.css';
+                link.media = 'all';
+                try{
+                    document.getElementsByTagName('head')[0].appendChild(link);
+                } catch (e) {
+                    console.log(e);
+                }
+            })(); (() => {
+    // Функція для обробки iframe
+    function handleIframe(iframe, count) {
+        // Список дозволених iframe за їхніми src або id
+        var allowedSources = [
+            { type: 'id', value: 'youtube-iframe' },
+            { type: 'src', value: 'https://www.youtube.com/embed/' },
+            { type: 'src', value: 'https://maps.google.com' },
+            { type: 'src', value: 'https://player.vimeo.com/' },
+            { type: 'src', value: 'https://www.facebook.com/plugins/' },
+            { type: 'src', value: 'https://www.instagram.com/' },
+            { type: 'src', value: 'https://twitter.com/' },
+            { type: 'src', value: 'https://www.linkedin.com/embed/' },
+            { type: 'src', value: 'https://www.soundcloud.com/' }
+            // Додайте інші популярні джерела за необхідності
+        ];
+
+        // Функція для перевірки, чи iframe дозволений
+        function isAllowed(iframe) {
+            for (var i = 0; i < allowedSources.length; i++) {
+                var source = allowedSources[i];
+                if (source.type === 'id' && iframe.id === source.value) {
+                    return true;
+                }
+                if (source.type === 'src' && iframe.src.startsWith(source.value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Перевіряємо, чи iframe дозволений
+        if (!isAllowed(iframe)) {
+            return; // Пропускаємо, якщо не дозволений
+        }
+
+        // Перевірка, чи вже обгорнутий iframe
+        if (iframe.parentElement.classList.contains('iframe-wrapper')) {
+            return; // Пропускаємо, якщо вже обгорнутий
+        }
+
+        // Створюємо обгортку <div class="iframe-wrapper" id="iframe-wrapper-COUNT">
+        var wrapper = document.createElement('div');
+        wrapper.className = 'iframe-wrapper';
+        wrapper.id = 'iframe-wrapper-' + count;
+
+        // Створюємо накладений <div class="iframe-overlay" id="iframe-overlay-COUNT">
+        var overlay = document.createElement('div');
+        overlay.className = 'iframe-overlay';
+        overlay.id = 'iframe-overlay-' + count;
+
+        // Вставляємо обгортку перед iframe
+        iframe.parentNode.insertBefore(wrapper, iframe);
+
+        // Переміщуємо iframe всередину обгортки
+        wrapper.appendChild(iframe);
+
+        setTimeout(() => {
+            // Встановлюємо розміри і положення накладенного елементу такими як у iframe
+            var iframeRect = iframe.getBoundingClientRect();
+            overlay.style.width = iframeRect.width + 'px';
+            overlay.style.height = iframeRect.height + 'px';
+            overlay.style.left = iframe.offsetLeft + 'px';
+
+            // Додаємо накладений елемент поверх iframe
+            wrapper.appendChild(overlay);
+        }, 500);
+
+        // Обробник кліку на накладений елемент
+        overlay.addEventListener('click', function () {
+            // Видаляємо накладений елемент
+            overlay.style.display = 'none';
+
+            // Опціонально: Можна додати додаткові дії при кліку, якщо потрібно
+            // Наприклад, запускати відео через API, якщо це відео
+
+            // Plerdy автоматично відстежить клік на .iframe-overlay
+        });
+    }
+
+    // Знаходимо всі iframe на сторінці
+    var iframes = document.querySelectorAll('iframe');
+
+    // Лічильник для унікальних ID
+    var count = 1;
+
+    iframes.forEach(function (iframe) {
+        handleIframe(iframe, count);
+        count++;
+    });
+
+    // Налаштування MutationObserver для динамічно доданих iframe
+    var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            mutation.addedNodes.forEach(function (node) {
+                if (node.tagName === 'IFRAME') {
+                    handleIframe(node, count);
+                    count++;
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Перевірка всіх iframe в новому елементі
+                    var nestedIframes = node.querySelectorAll('iframe');
+                    nestedIframes.forEach(function (nestedIframe) {
+                        handleIframe(nestedIframe, count);
+                        count++;
+                    });
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+})();

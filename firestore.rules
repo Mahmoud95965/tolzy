@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // السماح بقراءة الأدوات للجميع
+    match /tools/{toolId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      // السماح بالتحديث للمستخدمين المسجلين فقط
+      // يمكن للمستخدمين تحديث التصويتات والحفظ
+      allow update: if request.auth != null && 
+                       (request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['votes', 'rating', 'reviewCount', 'votingStats', 'savedBy']));
+      allow delete: if request.auth != null;
+    }
+    
+    // السماح بقراءة المستخدمين للجميع، والكتابة للمستخدم نفسه فقط
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // السماح بقراءة الأخبار للجميع، والكتابة للمستخدمين المسجلين
+    match /news/{newsId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // السماح بقراءة الإشعارات للمستخدم نفسه فقط
+    match /notifications/{notificationId} {
+      // السماح بالقراءة إذا كان المستخدم مسجل دخول
+      // سيتم التحقق من userId في الاستعلام نفسه
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+                               request.auth.email == resource.data.userId;
+    }
+    
+    // السماح للمسؤولين بالقراءة والكتابة
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == adminId;
+    }
+    
+    // السماح بإرسال رسائل التواصل للجميع، والقراءة للمسجلين فقط
+    match /contact_messages/{messageId} {
+      allow create: if true; // السماح للجميع بإرسال رسائل
+      allow read, update, delete: if request.auth != null; // القراءة والتعديل للمسجلين فقط
+    }
+    
+    // السماح للمستخدمين بالوصول لمحادثاتهم الخاصة فقط
+    match /users/{userId}/chatHistory/{messageId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

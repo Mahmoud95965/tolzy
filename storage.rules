@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Profile images - users can only upload/update their own profile images
+    match /profile-images/{userId}/{fileName} {
+      // Allow read for everyone
+      allow read: if true;
+      
+      // Allow write only for the authenticated user who owns the profile
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024 // Max 5MB
+                   && request.resource.contentType.matches('image/.*');
+      
+      // Allow delete only for the owner
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Tool images - authenticated users can upload
+    match /tool-images/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024 // Max 10MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // News images - authenticated users can upload
+    match /news-images/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024 // Max 10MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
