@@ -14,6 +14,13 @@ interface SubcategoryGroup {
   tools: Tool[];
 }
 
+type SubcategoryTabId = 'all' | 'popular' | 'others';
+
+interface SubcategoryTab {
+  id: SubcategoryTabId;
+  label: string;
+}
+
 const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
   const { tools } = useTools();
 
@@ -136,7 +143,21 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
       // Other
       'Other': 'أخرى',
       'Productivity': 'الإنتاجية',
-      'Business': 'الأعمال'
+      'Business': 'الأعمال',
+
+      // Misc extra subcategories
+      'Grammar': 'القواعد اللغوية',
+      'Education': 'التعليم',
+      'Blogging': 'التدوين',
+      'E-commerce': 'التجارة الإلكترونية',
+      'Content Creation': 'إنشاء المحتوى',
+      'Collaboration': 'التعاون',
+      'Enterprise': 'المؤسسات',
+      'Chatbot': 'روبوت محادثة',
+      'Customer Support': 'دعم العملاء',
+      'Design': 'التصميم',
+      'Presentations': 'العروض التقديمية',
+      'No-Code': 'بدون برمجة'
     };
 
     return translations[subcategory] || subcategory;
@@ -164,6 +185,74 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
 
   const subcategoryGroups = groupToolsBySubcategory();
 
+  const [activeTab, setActiveTab] = React.useState<SubcategoryTabId>('all');
+  const [showAllSubcategories, setShowAllSubcategories] = React.useState(false);
+  const [isLargeScreen, setIsLargeScreen] = React.useState(false);
+  const [isPageContentVisible, setIsPageContentVisible] = React.useState(true);
+  const [expandedGroups, setExpandedGroups] = React.useState<{ [key: string]: boolean }>({});
+  const [showScrollTop, setShowScrollTop] = React.useState(false);
+
+  const expandableGroups = subcategoryGroups.filter((group) => group.tools.length > 2);
+  const allExpandableExpanded =
+    expandableGroups.length > 0 &&
+    expandableGroups.every((group) => expandedGroups[group.name]);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    setShowAllSubcategories(false);
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 60);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const popularGroups = subcategoryGroups.slice(0, 6);
+  const otherGroups = subcategoryGroups.slice(6);
+
+  const baseTabs: SubcategoryTab[] = [
+    { id: 'all', label: 'كل الفئات' },
+    { id: 'popular', label: 'الأكثر شيوعاً' }
+  ];
+
+  const tabs: SubcategoryTab[] =
+    otherGroups.length > 0
+      ? [...baseTabs, { id: 'others', label: 'فئات أخرى' }]
+      : baseTabs;
+
+  const getVisibleGroups = (): SubcategoryGroup[] => {
+    if (activeTab === 'popular') {
+      return popularGroups;
+    }
+    if (activeTab === 'others') {
+      return otherGroups;
+    }
+    return subcategoryGroups;
+  };
+
+  const visibleGroups = getVisibleGroups();
+
+  const allTabLimit = isLargeScreen ? 12 : 6;
+
+  const displayedGroups =
+    !showAllSubcategories
+      ? visibleGroups.slice(0, allTabLimit)
+      : visibleGroups;
+
   if (categoryTools.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -178,7 +267,6 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
       </div>
     );
   }
-
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -188,8 +276,8 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
             أدوات {getCategoryNameAr(category)} بالذكاء الاصطناعي - تعزيز إنتاجيتك بالابتكار الذكي
           </h1>
           <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-4xl mx-auto animate-slide-up opacity-0 animation-delay-100">
-            اكتشف القوة التحويلية لأدوات {getCategoryNameAr(category)} بالذكاء الاصطناعي. أكثر من مجرد أدوات، فهي تعمل كمحفزات للتغيير، 
-            تحول المهام الروتينية إلى فرص استثنائية للإنتاجية. سواء كنت تقوم بتحسين سير العمل أو تعزيز التعاون، 
+            اكتشف القوة التحويلية لأدوات {getCategoryNameAr(category)} بالذكاء الاصطناعي. أكثر من مجرد أدوات، فهي تعمل كمحفزات للتغيير،
+            تحول المهام الروتينية إلى فرص استثنائية للإنتاجية. سواء كنت تقوم بتحسين سير العمل أو تعزيز التعاون،
             فإن الذكاء الاصطناعي هو شريكك الأساسي في إعادة تعريف العمل. ابدأ رحلتك نحو الكفاءة المحسنة مع الذكاء الاصطناعي بجانبك.
           </p>
           <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 animate-fade-in opacity-0 animation-delay-200">
@@ -200,28 +288,112 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
           </div>
         </div>
 
+        <div className="flex justify-center mb-6 sticky top-4 z-30">
+          <button
+            type="button"
+            onClick={() => setIsPageContentVisible((prev) => !prev)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm sm:text-base font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+            aria-label={isPageContentVisible ? 'إخفاء الفئات الفرعية' : 'إظهار الفئات الفرعية'}
+            aria-expanded={isPageContentVisible}
+          >
+            <span>
+              {isPageContentVisible ? 'إخفاء الفئات الفرعية' : 'إظهار الفئات الفرعية'}
+            </span>
+            <span className="text-lg" aria-hidden="true">
+              {isPageContentVisible ? '👁️‍🗨️' : '🙈'}
+            </span>
+          </button>
+        </div>
+
         {/* Table of Contents */}
-        <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm animate-fade-in opacity-0 animation-delay-300 hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span className="text-2xl animate-bounce-slow">📑</span>
-            محتويات الصفحة
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {subcategoryGroups.map((group, index) => (
-              <a
-                key={index}
-                href={`#${group.name.replace(/\s+/g, '-').toLowerCase()}`}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 group transform hover:scale-105 hover:shadow-md"
-                style={{ animationDelay: `${400 + index * 50}ms` }}
-              >
-                <span className="text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium transition-colors duration-200">
-                  {group.nameAr}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-200">
-                  {group.tools.length}
-                </span>
-              </a>
-            ))}
+        <div
+          className={`mb-8 bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm animate-fade-in opacity-0 animation-delay-300 hover:shadow-lg transition-shadow duration-300 ${
+            !isPageContentVisible ? 'hidden' : ''
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="text-2xl animate-bounce-slow">
+                
+              </span>
+              محتويات الصفحة
+            </h2>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="hidden sm:inline-block">اختر فئة فرعية من التبويبات للاستكشاف السريع</span>
+              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-900/60">
+                {subcategoryGroups.length} فئات فرعية
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 overflow-x-auto">
+            {tabs.map((tab) => {
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent shadow-md'
+                      : 'bg-gray-50 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-1">
+            {displayedGroups.map((group, index) => {
+              const anchorId = group.name.replace(/\s+/g, '-').toLowerCase();
+              return (
+                <button
+                  key={group.name}
+                  type="button"
+                  onClick={() => {
+                    const section = document.getElementById(anchorId);
+                    if (section) {
+                      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                  className="group flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 hover:from-indigo-50 hover:to-blue-50 dark:hover:from-indigo-950/60 dark:hover:to-slate-900/80 hover:border-indigo-200 dark:hover:border-indigo-600 transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-gray-900 transform hover:-translate-y-0.5"
+                  style={{ animationDelay: `${400 + index * 40}ms` }}
+                >
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-sm group-hover:shadow-md transition-all duration-200">
+                    <span className="text-lg">
+                      {getSubcategoryIcon(group.name)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-right">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                      {group.nameAr}
+                    </div>
+                    <div className="mt-1 flex items-center justify-end gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                      <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-200">
+                        {group.tools.length} {group.tools.length === 1 ? 'أداة' : 'أدوات'}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {!showAllSubcategories && visibleGroups.length > displayedGroups.length && (
+              <div className="col-span-2 sm:col-span-3 md:col-span-4 flex justify-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAllSubcategories(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  عرض جميع الفئات ({visibleGroups.length})
+                </button>
+              </div>
+            )}
+            {displayedGroups.length === 0 && (
+              <div className="col-span-full text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                لا توجد فئات فرعية في هذا القسم حالياً.
+              </div>
+            )}
           </div>
         </div>
 
@@ -241,7 +413,38 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
         </div>
 
         {/* Subcategory Sections */}
-        {subcategoryGroups.map((group, index) => (
+        {expandableGroups.length > 0 && (
+          <div className="mb-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                setExpandedGroups((prev) => {
+                  const next: { [key: string]: boolean } = { ...prev };
+                  if (!allExpandableExpanded) {
+                    expandableGroups.forEach((group) => {
+                      next[group.name] = true;
+                    });
+                  } else {
+                    expandableGroups.forEach((group) => {
+                      next[group.name] = false;
+                    });
+                  }
+                  return next;
+                })
+              }
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm sm:text-base font-medium text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-100 dark:border-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              {allExpandableExpanded
+                ? 'إخفاء الأدوات الإضافية في جميع الفئات الفرعية'
+                : 'عرض جميع الأدوات في جميع الفئات الفرعية'}
+            </button>
+          </div>
+        )}
+        {subcategoryGroups.map((group, index) => {
+          const isExpanded = !!expandedGroups[group.name];
+          const visibleTools = isExpanded ? group.tools : group.tools.slice(0, 2);
+
+          return (
           <div
             key={index}
             id={group.name.replace(/\s+/g, '-').toLowerCase()}
@@ -267,7 +470,7 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
 
             {/* Tools Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {group.tools.map((tool, toolIndex) => (
+              {visibleTools.map((tool, toolIndex) => (
                 <div
                   key={tool.id}
                   className="animate-fade-in opacity-0"
@@ -277,11 +480,89 @@ const CategoryToolsView: React.FC<CategoryToolsViewProps> = ({ category }) => {
                 </div>
               ))}
             </div>
+            {group.tools.length > 2 && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedGroups((prev) => ({
+                      ...prev,
+                      [group.name]: !prev[group.name]
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  {isExpanded ? 'إخفاء الأدوات الإضافية' : `عرض جميع الأدوات (${group.tools.length})`}
+                </button>
+              </div>
+            )}
           </div>
-        ))}
+        );
+        })}
       </div>
+
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-40 inline-flex items-center justify-center w-11 h-11 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          aria-label="التمرير إلى أعلى الصفحة"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
+};
+
+const getSubcategoryIcon = (subcategory: string): string => {
+  const icons: { [key: string]: string } = {
+    'Video Editing': '🎬',
+    'Video Generation': '🎥',
+    'Video Enhancement': '✨',
+    'Text to Video': '📽️',
+    'Video Analytics': '📊',
+    'Content Writing': '✍️',
+    'Copywriting': '📝',
+    'Paraphrasing': '♻️',
+    'Grammar Check': '✅',
+    'Translation': '🌐',
+    'SEO': '🔍',
+    'Image Generation': '🖼️',
+    'Image Editing': '✨',
+    'Logo Design': '🎨',
+    'UI/UX Design': '🧩',
+    'Graphic Design': '🧶',
+    'Task Management': '📋',
+    'Note Taking': '🗒️',
+    'Calendar': '📅',
+    'Email': '✉️',
+    'Automation': '⚙️',
+    'Project Management': '📊',
+    'Code Generation': '💻',
+    'Code Review': '🔎',
+    'Debugging': '🐞',
+    'Documentation': '📚',
+    'Sales': '💼',
+    'Marketing': '📣',
+    'Customer Service': '🤝',
+    'Learning': '🎓',
+    'Teaching': '🧑‍🏫',
+    'Assessment': '📝',
+    'Course Creation': '📘',
+    'Study Tools': '📖',
+    'Literature Review': '📚',
+    'Data Analysis': '📉',
+    'Academic Writing': '✒️',
+    'Music Generation': '🎵',
+    'Audio Generation': '🔊',
+    'Voice Cloning': '🗣️',
+    '3D Modeling': '📐',
+    'NeRF': '🧠',
+    'Other': '🧩'
+  };
+
+  return icons[subcategory] || '🧩';
 };
 
 // وصف لكل فئة فرعية

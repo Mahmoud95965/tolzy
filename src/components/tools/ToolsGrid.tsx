@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tool } from '../../types';
+import { Tool } from '../../types/index';
 import ToolCard from './ToolCard';
 
 interface ToolsGridProps {
@@ -10,8 +10,8 @@ interface ToolsGridProps {
 const ToolsGrid: React.FC<ToolsGridProps> = ({ tools, title }) => {    if (tools.length === 0) {
     return (
       <div className="text-center py-10">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">No tools found</h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or search query.</p>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">لا توجد أدوات متاحة</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">جرّب تعديل الفلاتر أو إعادة كتابة عبارة البحث.</p>
       </div>
     );
   }

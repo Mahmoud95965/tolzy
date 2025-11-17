@@ -635,7 +635,7 @@ const TolzyAIChat: React.FC = () => {
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2.5 text-center flex items-center justify-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                <span>مدعوم بـ Google Gemini 2.0 Flash</span>
+                <span>مدعوم بـ OpenAI - ChatGPT</span>
               </p>
             </div>
           </>

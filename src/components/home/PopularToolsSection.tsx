@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tool } from '../../types/tool';
+import ToolImage from '../common/ToolImage';
 import { 
   PenLine, 
   BookOpen, 
@@ -144,63 +145,74 @@ const PopularToolsSection: React.FC<PopularToolsSectionProps> = ({
 
             {/* Tools List */}
             <div className="space-y-3">
-              {currentTools.slice(0, 6).map((tool) => (
-                <Link
-                  key={tool.id}
-                  to={`/tools/${tool.id}`}
-                  className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-200 group"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Tool Icon */}
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm overflow-hidden">
-                        {tool.imageUrl ? (
-                          <img src={tool.imageUrl} alt={tool.name} className="w-full h-full object-cover" />
-                        ) : (
-                          tool.name.charAt(0).toUpperCase()
-                        )}
-                      </div>
-                    </div>
+              {currentTools.slice(0, 6).map((tool) => {
+                const primaryCategory = Array.isArray(tool.category)
+                  ? tool.category[0]
+                  : tool.category;
 
-                    {/* Tool Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {tool.isNew && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                            ⚡
-                          </span>
-                        )}
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                          {tool.name}
-                        </h4>
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-1 mb-2">
-                        {tool.description}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {tool.tags?.slice(0, 3).map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-300"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                const primarySubcategory = Array.isArray(tool.subcategory)
+                  ? tool.subcategory[0]
+                  : tool.subcategory;
 
-                    {/* Stats */}
-                    <div className="flex flex-col items-center gap-1 px-3 border-r border-gray-200 dark:border-gray-700">
-                      <Bookmark className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{tool.savedBy?.length || 0}</span>
+                return (
+                  <Link
+                    key={tool.id}
+                    to={`/tools/${tool.id}`}
+                    className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Tool Icon */}
+                      <div className="flex-shrink-0">
+                        <ToolImage
+                          imageUrl={tool.imageUrl}
+                          name={tool.name}
+                          categoryName={primaryCategory}
+                          subcategoryName={primarySubcategory}
+                          size="sm"
+                          className="shadow-sm"
+                        />
+                      </div>
+
+                      {/* Tool Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          {tool.isNew && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                              ⚡
+                            </span>
+                          )}
+                          <h4 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                            {tool.name}
+                          </h4>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-1 mb-2">
+                          {tool.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tool.tags?.slice(0, 3).map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-300"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex flex-col items-center gap-1 px-3 border-r border-gray-200 dark:border-gray-700">
+                        <Bookmark className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{tool.savedBy?.length || 0}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                        <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">→</span>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                      <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">→</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* View All Link */}

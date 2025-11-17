@@ -39,6 +39,7 @@ export interface Tool {
   description: string;
   longDescription: string;
   category: ToolCategory | ToolCategory[]; // يدعم فئة واحدة أو عدة فئات
+  subcategory?: string | string[];
   tags: string[];  
   url: string;
   imageUrl: string;

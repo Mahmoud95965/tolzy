@@ -224,6 +224,8 @@ const ToolDetailPageNew: React.FC = () => {
                   <ToolImage 
                     imageUrl={tool.imageUrl}
                     name={tool.name}
+                    categoryName={Array.isArray(tool.category) ? tool.category[0] : tool.category}
+                    subcategoryName={Array.isArray(tool.subcategory) ? tool.subcategory?.[0] : tool.subcategory}
                     size="lg"
                     className="transition-transform duration-300 hover:scale-110"
                   />

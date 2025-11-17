@@ -16,6 +16,14 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [savedCount, setSavedCount] = useState(tool.savedBy?.length || 0);
 
+  const primaryCategory = Array.isArray(tool.category)
+    ? tool.category[0]
+    : tool.category;
+
+  const primarySubcategory = Array.isArray(tool.subcategory)
+    ? tool.subcategory[0]
+    : tool.subcategory;
+
   useEffect(() => {
     if (user && tool.savedBy) {
       setIsSaved(tool.savedBy.includes(user.uid));
@@ -60,7 +68,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
 
   const pricingInfo = {
     Free: { label: 'مجاني' },
-    Freemium: { label: 'Freemium' },
+    Freemium: { label: 'مجاني مع مميزات مدفوعة' },
     Paid: { label: 'مدفوع' },
     Subscription: { label: 'اشتراك' },
   };
@@ -82,6 +90,8 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
           <ToolImage 
             imageUrl={tool.imageUrl}
             name={tool.name}
+            categoryName={primaryCategory}
+            subcategoryName={primarySubcategory}
             size="md"
             className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
           />
@@ -151,7 +161,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
         {tool.isFeatured && (
           <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
             <Award className="w-4 h-4" />
-            <span>Editor's Pick</span>
+            <span>اختيار المحرر</span>
           </div>
         )}
         

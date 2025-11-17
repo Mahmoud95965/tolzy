@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTools } from '../../hooks/useTools';
 import { ChevronLeft, ChevronRight, Star, ExternalLink, Award } from 'lucide-react';
+import ToolImage from '../common/ToolImage';
 
 const CallToAction: React.FC = () => {
   const { t } = useTranslation();
@@ -50,17 +51,26 @@ const CallToAction: React.FC = () => {
 
           {/* Tools Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {visibleTools.map((tool, index) => (
-              <div
-                key={tool.id}
-                className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-              >
-                {/* Editor's Pick Badge */}
+            {visibleTools.map((tool, index) => {
+              const primaryCategory = Array.isArray(tool.category)
+                ? tool.category[0]
+                : tool.category;
+
+              const primarySubcategory = Array.isArray(tool.subcategory)
+                ? tool.subcategory[0]
+                : tool.subcategory;
+
+              return (
+                <div
+                  key={tool.id}
+                  className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                >
+                {/* شارة اختيار المحرر */}
                 {index === 0 && (
                   <div className="absolute top-3 left-3 z-10">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg">
                       <Award className="w-3.5 h-3.5 text-white" />
-                      <span className="text-xs font-bold text-white">Editor's Pick</span>
+                      <span className="text-xs font-bold text-white">اختيار المحرر</span>
                     </div>
                   </div>
                 )}
@@ -71,13 +81,16 @@ const CallToAction: React.FC = () => {
                 <div className="relative p-6">
                   {/* Tool Header */}
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl overflow-hidden flex-shrink-0 ring-4 ring-white dark:ring-gray-800">
-                        {tool.imageUrl ? (
-                          <img src={tool.imageUrl} alt={tool.name} className="w-full h-full object-cover" />
-                        ) : (
-                          tool.name.charAt(0).toUpperCase()
-                        )}
+                    <div className="relative flex-shrink-0">
+                      <div className="rounded-2xl ring-4 ring-white dark:ring-gray-800 overflow-hidden">
+                        <ToolImage
+                          imageUrl={tool.imageUrl}
+                          name={tool.name}
+                          categoryName={primaryCategory}
+                          subcategoryName={primarySubcategory}
+                          size="md"
+                          className="shadow-xl"
+                        />
                       </div>
                       {/* Verified Badge */}
                       <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
@@ -153,7 +166,8 @@ const CallToAction: React.FC = () => {
                 {/* Bottom Gradient Border */}
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Pagination Dots */}

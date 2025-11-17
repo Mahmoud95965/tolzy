@@ -5,6 +5,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Google Gemini API Configuration
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
 const genAI = GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY' ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+// OpenAI API Configuration
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini';
 
 export interface Tool {
   id: string;
@@ -30,6 +33,8 @@ class TolzyAIService {
   private isInitialized = false;
   private lastUpdate: Date | null = null;
   private updateInterval = 5 * 60 * 1000; // تحديث كل 5 دقائق
+  private geminiDisabledUntil: number | null = null;
+  private readonly geminiCooldownMs = 30 * 60 * 1000; // تعطيل Gemini لمدة 30 دقيقة بعد الوصول للحد
 
   /**
    * تهيئة Tolzy AI وتحميل جميع الأدوات من Firebase
@@ -150,6 +155,35 @@ class TolzyAIService {
       }
     }
 
+    // إذا تم تهيئة OpenAI، استخدمه كمزوّد رئيسي للجيل
+    if (OPENAI_API_KEY) {
+      try {
+        console.log('🤖 Tolzy AI (OpenAI) processing...');
+        const openaiText = await this.generateOpenAIResponse(userMessage, conversationHistory);
+        if (openaiText) {
+          console.log('✅ OpenAI response received');
+          return openaiText;
+        }
+        return this.generateLocalResponse(userMessage);
+      } catch (error: any) {
+        const status = error?.status || error?.response?.status;
+
+        if (status === 429) {
+          console.warn('⚠️ تم الوصول إلى حد استخدام OpenAI (429). سيتم استخدام نظام Tolzy المحلي لهذه الرسالة.', error);
+        } else {
+          console.warn('⚠️ OpenAI API فشل، التحويل للنظام المحلي...', error);
+        }
+
+        return this.generateLocalResponse(userMessage);
+      }
+    }
+
+    // إذا تم تعطيل Gemini مؤقتاً بسبب تجاوز الحد، استخدم النظام المحلي مباشرة
+    if (this.geminiDisabledUntil && Date.now() < this.geminiDisabledUntil) {
+      console.warn('⚠️ تم تجاوز حد استخدام Gemini مؤخراً، Tolzy AI يعمل الآن في الوضع المحلي فقط.');
+      return this.generateLocalResponse(userMessage);
+    }
+
     // التحقق من API Key
     if (!genAI) {
       console.warn('⚠️ Gemini API غير متاح، استخدام النظام المحلي...');
@@ -178,10 +212,120 @@ class TolzyAIService {
       
       return this.generateLocalResponse(userMessage);
       
-    } catch (error) {
-      console.warn('⚠️ Gemini API فشل، التحويل للنظام المحلي...', error);
+    } catch (error: any) {
+      const status = error?.status || error?.response?.status;
+
+      if (status === 429) {
+        // Too Many Requests - تعطيل طلبات Gemini لفترة واستخدام النظام المحلي فقط
+        this.geminiDisabledUntil = Date.now() + this.geminiCooldownMs;
+        console.warn('⚠️ تم الوصول إلى حد استخدام Gemini (429). سيتم استخدام نظام Tolzy المحلي فقط لفترة زمنية.', error);
+      } else {
+        console.warn('⚠️ Gemini API فشل، التحويل للنظام المحلي...', error);
+      }
+
       return this.generateLocalResponse(userMessage);
     }
+  }
+
+  private async generateOpenAIResponse(userMessage: string, conversationHistory: ChatMessage[]): Promise<string> {
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not configured');
+    }
+
+    const systemPrompt = this.buildOpenAISystemPrompt();
+
+    const messages = [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      ...conversationHistory.map((msg) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      {
+        role: 'user',
+        content: userMessage
+      }
+    ];
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages,
+        temperature: 0.4
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      const error: any = new Error('OpenAI API error');
+      error.status = response.status;
+      error.body = errorBody;
+      throw error;
+    }
+
+    const data = await response.json();
+    const text: string | undefined = data.choices?.[0]?.message?.content;
+    return (text || '').trim();
+  }
+
+  private buildOpenAISystemPrompt(): string {
+    let toolsSection = '';
+
+    if (this.tools.length === 0) {
+      toolsSection = 'لا توجد أدوات متاحة حالياً في قاعدة البيانات.';
+    } else {
+      toolsSection = this.tools
+        .map((tool) => {
+          const categories = Array.isArray(tool.category) ? tool.category.join('، ') : tool.category;
+          const internalLink = tool.link || `/tools/${tool.id}`;
+
+          return [
+            `- الاسم: ${tool.name}`,
+            tool.description ? `  الوصف: ${tool.description}` : '',
+            `  الفئة: ${categories}`,
+            `  الرابط: ${internalLink}`
+          ]
+            .filter(Boolean)
+            .join('\n');
+        })
+        .join('\n\n');
+    }
+
+    const basePrompt = `أنت مساعد ذكاء اصطناعي داخل موقع tolzy.me.
+
+قائمة الأدوات التالية يتم جلبها مباشرة من Firestore، وتشمل:
+- اسم الأداة
+- وصفها
+- فئتها
+- رابطها الفعلي في الموقع
+
+عند الإجابة:
+- إذا ذكر المستخدم اسم أداة، استخدم الرابط الموجود معها في القائمة حرفيًا.
+- لا تخمّن الروابط ولا تنشئ روابط جديدة.
+- استخدم فقط الروابط التي يتم تمريرها لك ضمن بيانات الأدوات.
+
+عند تلقي سؤال عن أداة:
+- قدّم وصف الأداة
+- اشرح طريقة استخدامها
+- أرسل الرابط كما هو من Firestore
+
+عند تلقي سؤال علمي أو عام:
+- قدم أفضل شرح مبسط ودقيق وغير معقد.
+
+هنا الأدوات المتاحة حاليًا:
+
+[TOOLS_LIST_HERE]
+
+ابدأ بالإجابة بناءً على سؤال المستخدم فقط.`;
+
+    return basePrompt.replace('[TOOLS_LIST_HERE]', toolsSection);
   }
 
   /**
