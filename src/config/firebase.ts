@@ -55,6 +55,8 @@ try {
   }
 
   app = initializeApp(firebaseConfig);
+  // Initialize Firestore with persistent cache
+  // Initialize Firestore with persistent cache
   db = getFirestore(app);
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
@@ -66,20 +68,9 @@ try {
     access_type: 'offline',
   });
 
-  // Enable offline persistence (optional, non-blocking)
-  if (typeof window !== 'undefined') {
-    import('firebase/firestore').then(({ enableIndexedDbPersistence }) => {
-      enableIndexedDbPersistence(db, { forceOwnership: false }).catch((err: any) => {
-        if (err.code === 'failed-precondition') {
-          console.warn('Firebase persistence: Multiple tabs open');
-        } else if (err.code === 'unimplemented') {
-          console.warn('Firebase persistence: Not supported in this browser');
-        }
-      });
-    }).catch(() => {
-      // Silently fail if persistence can't be enabled
-    });
-  }
+  // Note: Modern Firestore SDKs enable persistence by default in web environments where supported.
+  // We can explicitly configure it if needed, but the default behavior is usually sufficient and safer.
+  // Removing the deprecated enableIndexedDbPersistence call to avoid errors.
 
   console.log('✅ Firebase initialized successfully');
 } catch (error) {

@@ -35,6 +35,7 @@ class TolzyAIService {
   private updateInterval = 5 * 60 * 1000; // تحديث كل 5 دقائق
   private geminiDisabledUntil: number | null = null;
   private readonly geminiCooldownMs = 30 * 60 * 1000; // تعطيل Gemini لمدة 30 دقيقة بعد الوصول للحد
+  private isOpenAIKeyValid = true;
 
   /**
    * تهيئة Tolzy AI وتحميل جميع الأدوات من Firebase
@@ -60,7 +61,7 @@ class TolzyAIService {
       console.log('🔄 Refreshing tools database...');
       const toolsRef = collection(db, 'tools');
       const snapshot = await getDocs(toolsRef);
-      
+
       this.tools = snapshot.docs.map(doc => {
         const data = doc.data();
         // استخدام document ID من Firestore كرابط الأداة
@@ -74,7 +75,7 @@ class TolzyAIService {
 
       this.lastUpdate = new Date();
       console.log(`✅ Tools database updated with ${this.tools.length} tools at ${this.lastUpdate.toLocaleTimeString('ar-EG')}`);
-      
+
       // طباعة بعض الأمثلة للتأكد من الروابط
       if (this.tools.length > 0) {
         console.log('📋 أمثلة من روابط الأدوات:');
@@ -103,30 +104,30 @@ class TolzyAIService {
    */
   private findRelevantTools(query: string, limit: number = 5): Tool[] {
     const queryLower = query.toLowerCase();
-    
+
     // البحث في الاسم والوصف والفئات والتاجات
     const scoredTools = this.tools.map(tool => {
       let score = 0;
-      
+
       // البحث في الاسم (أعلى أولوية)
       if (tool.name && tool.name.toLowerCase().includes(queryLower)) score += 10;
-      
+
       // البحث في الوصف
       if (tool.description && tool.description.toLowerCase().includes(queryLower)) score += 5;
-      
+
       // البحث في الفئات
       const categories = Array.isArray(tool.category) ? tool.category : [tool.category];
       if (categories.some(cat => cat.toLowerCase().includes(queryLower))) score += 7;
-      
+
       // البحث في التاجات
       if (tool.tags?.some(tag => tag.toLowerCase().includes(queryLower))) score += 3;
-      
+
       // البحث في المميزات
       if (tool.features?.some(feature => feature.toLowerCase().includes(queryLower))) score += 2;
-      
+
       // إضافة نقاط للتقييم العالي
       score += (tool.rating || 0) * 0.5;
-      
+
       return { tool, score };
     });
 
@@ -146,8 +147,8 @@ class TolzyAIService {
       await this.initialize();
     }
 
-    // تحديث قاعدة البيانات إذا مر وقت طويل
-    if (this.shouldRefresh()) {
+    // تحديث قاعدة البيانات إذا مر وقت طويل أو إذا كانت القائمة فارغة
+    if (this.shouldRefresh() || this.tools.length === 0) {
       try {
         await this.refreshTools();
       } catch (error) {
@@ -155,8 +156,22 @@ class TolzyAIService {
       }
     }
 
+    // محاولة استخدام Ollama أولاً (إذا كان متاحاً)
+    try {
+      console.log('🦙 Checking Ollama connection...');
+      const ollamaResponse = await this.generateOllamaResponse(userMessage, conversationHistory);
+      if (ollamaResponse) {
+        console.log('✅ Ollama response received');
+        return ollamaResponse;
+      }
+    } catch (error) {
+      console.warn('⚠️ Ollama غير متاح أو حدث خطأ، الانتقال للمزود التالي...', error);
+    }
+
     // إذا تم تهيئة OpenAI، استخدمه كمزوّد رئيسي للجيل
-    if (OPENAI_API_KEY) {
+    // تم تعطيل OpenAI مؤقتاً لتجنب أخطاء 401 بسبب مفاتيح API غير صالحة
+    // لإعادة التفعيل، قم بإزالة "false &&" وتأكد من صلاحية المفتاح
+    if (false && OPENAI_API_KEY && OPENAI_API_KEY.startsWith('sk-') && OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY' && this.isOpenAIKeyValid) {
       try {
         console.log('🤖 Tolzy AI (OpenAI) processing...');
         const openaiText = await this.generateOpenAIResponse(userMessage, conversationHistory);
@@ -168,7 +183,10 @@ class TolzyAIService {
       } catch (error: any) {
         const status = error?.status || error?.response?.status;
 
-        if (status === 429) {
+        if (status === 401) {
+          console.warn('⚠️ مفتاح OpenAI غير صالح (401). تم تعطيل OpenAI لهذه الجلسة.');
+          this.isOpenAIKeyValid = false;
+        } else if (status === 429) {
           console.warn('⚠️ تم الوصول إلى حد استخدام OpenAI (429). سيتم استخدام نظام Tolzy المحلي لهذه الرسالة.', error);
         } else {
           console.warn('⚠️ OpenAI API فشل، التحويل للنظام المحلي...', error);
@@ -192,26 +210,26 @@ class TolzyAIService {
 
     try {
       console.log('🤖 Tolzy AI (Gemini) processing...');
-      
+
       // إرسال جميع الأدوات للسياق
       const context = this.createFullContext(userMessage);
-      
-      // استخدام Gemini 2.0 Flash
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-      
+
+      // استخدام Gemini 3.0 Pro Preview
+      const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
+
       const prompt = `${context}\n\nسؤال المستخدم: ${userMessage}\n\n⚠️ تذكير نهائي:\n- استخدم فقط IDs الموجودة في القاعدة أعلاه\n- لا تخترع أو تعدل أي ID\n- الرابط الصحيح: /tools/[exact-id-from-database]\n- مثال: إذا كان ID الأداة "chatgpt-4o" فالرابط /tools/chatgpt-4o\n\nأجب بالعربية بشكل مفيد ومختصر:`;
-      
+
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      
+
       if (text) {
         console.log('✅ Gemini response received');
         return text;
       }
-      
+
       return this.generateLocalResponse(userMessage);
-      
+
     } catch (error: any) {
       const status = error?.status || error?.response?.status;
 
@@ -224,6 +242,50 @@ class TolzyAIService {
       }
 
       return this.generateLocalResponse(userMessage);
+    }
+  }
+
+  /**
+   * توليد رد باستخدام Ollama (محلياً)
+   */
+  private async generateOllamaResponse(userMessage: string, conversationHistory: ChatMessage[]): Promise<string | null> {
+    const OLLAMA_API_URL = 'http://localhost:11434/api/chat';
+    const OLLAMA_MODEL = 'qwen2.5:1.5b';
+
+    try {
+      // بناء سياق النظام مع الأدوات
+      const systemPrompt = this.createFullContext(userMessage) +
+        '\n\nأنت مساعد ذكي. استخدم المعلومات أعلاه للإجابة على أسئلة المستخدم حول الأدوات. أجب دائماً باللغة العربية.';
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: userMessage }
+      ];
+
+      const response = await fetch(OLLAMA_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          messages: messages,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.message?.content || null;
+
+    } catch (error) {
+      // لا نرمي الخطأ هنا، بل نرجعه لكي يتم التعامل معه في الدالة الرئيسية والتحويل للبديل
+      console.warn('⚠️ فشل الاتصال بـ Ollama:', error);
+      return null;
     }
   }
 
@@ -332,66 +394,44 @@ class TolzyAIService {
    * إنشاء سياق كامل مع جميع الأدوات
    */
   private createFullContext(userMessage: string): string {
-    let context = `أنت Tolzy AI، مساعد ذكي متخصص في أدوات الذكاء الاصطناعي.\n\n`;
-    
-    // إضافة قائمة بجميع IDs المتاحة أولاً
-    context += `📋 قائمة IDs المتاحة فقط (استخدم هذه فقط):\n`;
-    this.tools.forEach(tool => {
-      context += `- ${tool.id} → ${tool.name}\n`;
-    });
-    context += `\n⚠️ هذه هي الـ IDs الوحيدة المسموحة. لا تستخدم أي ID آخر!\n\n`;
-    
-    context += `قاعدة بيانات الأدوات الكاملة (${this.tools.length} أداة):\n\n`;
-    
-    // إرسال جميع الأدوات
-    this.tools.forEach((tool, index) => {
-      const categories = Array.isArray(tool.category) ? tool.category.join('، ') : tool.category;
-      
-      context += `${index + 1}. ${tool.name}\n`;
-      context += `   🆔 ID: ${tool.id}\n`;
-      context += `   📂 الفئة: ${categories}\n`;
-      context += `   💰 التسعير: ${this.translatePricing(tool.pricing)}\n`;
-      context += `   ⭐ التقييم: ${tool.rating}/5\n`;
-      
-      if (tool.description) {
-        context += `   📝 الوصف: ${tool.description}\n`;
-      }
-      
-      if (tool.url) {
-        context += `   🔗 الرابط الخارجي: ${tool.url}\n`;
-      }
-      
-      // إضافة رابط داخلي للأداة - استخدام link من Firestore إذا كان موجوداً
-      const internalLink = tool.link || `/tools/${tool.id}`;
-      context += `   🔗 رابط الأداة في Tolzy: ${internalLink}\n`;
-      
-      if (tool.features && tool.features.length > 0) {
-        context += `   ✨ المميزات:\n`;
-        tool.features.forEach(feature => {
-          context += `      • ${feature}\n`;
-        });
-      }
-      
-      if (tool.tags && tool.tags.length > 0) {
-        context += `   🏷️ التاجات: ${tool.tags.join('، ')}\n`;
-      }
-      
-      context += `\n`;
-    });
-    
-    context += `\n⚠️ تعليمات صارمة - يجب الالتزام بها:\n`;
-    context += `1. استخدم فقط الأدوات الموجودة في القاعدة أعلاه\n`;
-    context += `2. لا تخترع أو تفترض وجود أدوات غير مذكورة\n`;
-    context += `3. عند ذكر أي أداة، استخدم ID الصحيح من القاعدة\n`;
-    context += `4. صيغة الرابط الإلزامية: /tools/[tool-id-from-database]\n`;
-    context += `5. مثال صحيح: "ChatGPT /tools/chatgpt-4o"\n`;
-    context += `6. مثال خاطئ: "ChatGPT /tools/chatgpt" (إذا كان ID الصحيح chatgpt-4o)\n`;
-    context += `7. تحقق من ID الأداة قبل كتابة الرابط\n`;
-    context += `8. إذا لم تجد الأداة في القاعدة، قل "لا توجد هذه الأداة حالياً"\n`;
-    context += `9. لا تستخدم روابط خارجية إلا إذا كانت موجودة في حقل url\n`;
-    context += `10. الروابط الداخلية فقط بصيغة /tools/[exact-tool-id]\n`;
-    
-    return context;
+    // تحضير البيانات بتنسيق JSON كما طلب المستخدم
+    const toolsData = this.tools.map(tool => ({
+      name: tool.name,
+      id: tool.id,
+      description: tool.description,
+      category: tool.category,
+      pricing: tool.pricing,
+      rating: tool.rating,
+      link: tool.link || `/tools/${tool.id}`,
+      features: tool.features,
+      external_url: tool.url
+    }));
+
+    console.log(`📊 Generating context with ${toolsData.length} tools.`);
+
+    const prompt = `أنت "Tolzy AI"، نظام إجابة دقيق يعتمد فقط على البيانات المقدمة.
+
+🔴 قاعدة صارمة: ممنوع استخدام أي معلومات من خارج البيانات التالية.
+🔴 قاعدة صارمة: إذا لم تجد الإجابة في البيانات التالية، قل "عذراً، هذه المعلومة غير متوفرة في قاعدة بيانات Tolzy".
+
+إحصائيات البيانات:
+- عدد الأدوات المتاحة: ${toolsData.length}
+
+البيانات المتاحة (Tools Database):
+${JSON.stringify(toolsData, null, 2)}
+
+تعليمات الإجابة:
+1. ابحث عن الأداة المطلوبة في "البيانات المتاحة" أعلاه.
+2. إذا سُئلت عن عدد الأدوات، استخدم الرقم المذكور في "إحصائيات البيانات".
+3. إذا وجدتها، قدم المعلومات (الاسم، الوصف، الرابط) كما هي مكتوبة في البيانات.
+4. الرابط يجب أن يكون حصراً من حقل "link" في البيانات.
+5. لا تضف أي معلومات من ذاكرتك.
+6. تحدث بأسلوب مساعد ومحترف باللغة العربية.
+
+سؤال المستخدم: ${userMessage}
+الإجابة:`;
+
+    return prompt;
   }
 
   /**
@@ -401,7 +441,7 @@ class TolzyAIService {
     console.log('🏠 استخدام النظام المحلي...');
     const queryType = this.analyzeQuery(userMessage);
     const relevantTools = this.findRelevantTools(userMessage, 5);
-    
+
     switch (queryType) {
       case 'search':
         return this.generateSearchResponse(userMessage, relevantTools);
@@ -423,32 +463,32 @@ class TolzyAIService {
    */
   private analyzeQuery(query: string): string {
     const lowerQuery = query.toLowerCase();
-    
+
     // تحية
     if (/^(مرحب|هلا|السلام|صباح|مساء|أهلا|hi|hello)/.test(lowerQuery)) {
       return 'greeting';
     }
-    
+
     // مقارنة
     if (/(قارن|مقارنة|الفرق|أفضل من|vs|versus|بين)/.test(lowerQuery)) {
       return 'compare';
     }
-    
+
     // توصية
     if (/(أريد|أحتاج|اقترح|نصحني|ساعدني|أبحث عن|عاوز|محتاج)/.test(lowerQuery)) {
       return 'recommend';
     }
-    
+
     // معلومات
     if (/(ما هو|ما هي|كيف|لماذا|متى|أين|شرح|معلومات|تفاصيل)/.test(lowerQuery)) {
       return 'info';
     }
-    
+
     // بحث
     if (/(أداة|tool|برنامج|تطبيق|موقع)/.test(lowerQuery)) {
       return 'search';
     }
-    
+
     return 'general';
   }
 
@@ -461,13 +501,13 @@ class TolzyAIService {
     }
 
     let response = `وجدت ${tools.length} ${tools.length === 1 ? 'أداة' : 'أدوات'} مناسبة:\n\n`;
-    
+
     tools.forEach((tool, index) => {
       const categories = Array.isArray(tool.category) ? tool.category.join('، ') : tool.category;
-      const features = tool.features && tool.features.length > 0 
-        ? tool.features.slice(0, 2).join('، ') 
+      const features = tool.features && tool.features.length > 0
+        ? tool.features.slice(0, 2).join('، ')
         : '';
-      
+
       const toolLink = tool.link || `/tools/${tool.id}`;
       response += `**${index + 1}. ${tool.name}** ${toolLink} ⭐ ${tool.rating}/5\n`;
       response += `📂 ${categories} | 💰 ${this.translatePricing(tool.pricing)}\n`;
@@ -482,7 +522,7 @@ class TolzyAIService {
       }
       response += `\n`;
     });
-    
+
     response += `هل تريد معرفة المزيد عن أي أداة؟`;
     return response;
   }
@@ -497,9 +537,9 @@ class TolzyAIService {
 
     const tool1 = tools[0];
     const tool2 = tools[1];
-    
+
     let response = `**مقارنة بين ${tool1.name} و ${tool2.name}:**\n\n`;
-    
+
     const tool1Link = tool1.link || `/tools/${tool1.id}`;
     response += `**${tool1.name}** ${tool1Link} ⭐ ${tool1.rating}/5\n`;
     response += `• التسعير: ${this.translatePricing(tool1.pricing)}\n`;
@@ -510,7 +550,7 @@ class TolzyAIService {
       response += `• الرابط: ${tool1.url}\n`;
     }
     response += `\n`;
-    
+
     const tool2Link = tool2.link || `/tools/${tool2.id}`;
     response += `**${tool2.name}** ${tool2Link} ⭐ ${tool2.rating}/5\n`;
     response += `• التسعير: ${this.translatePricing(tool2.pricing)}\n`;
@@ -521,7 +561,7 @@ class TolzyAIService {
       response += `• الرابط: ${tool2.url}\n`;
     }
     response += `\n`;
-    
+
     // التوصية
     if (tool1.rating > tool2.rating) {
       response += `💡 **التوصية:** ${tool1.name} (تقييم أعلى)`;
@@ -536,7 +576,7 @@ class TolzyAIService {
         response += `💡 كلاهما ممتاز! اختر حسب احتياجاتك.`;
       }
     }
-    
+
     return response;
   }
 
@@ -550,7 +590,7 @@ class TolzyAIService {
 
     const bestTool = tools[0];
     const categories = Array.isArray(bestTool.category) ? bestTool.category.join('، ') : bestTool.category;
-    
+
     let response = `بناءً على طلبك، أنصحك بـ:\n\n`;
     const bestToolLink = bestTool.link || `/tools/${bestTool.id}`;
     response += `🌟 **${bestTool.name}** ${bestToolLink} (${bestTool.rating}/5 نجوم)\n\n`;
@@ -561,18 +601,18 @@ class TolzyAIService {
     if (bestTool.url) {
       response += `• الرابط الخارجي: ${bestTool.url}\n`;
     }
-    
+
     if (bestTool.description) {
       response += `\n**الوصف:**\n${bestTool.description}\n`;
     }
-    
+
     if (bestTool.features && bestTool.features.length > 0) {
       response += `\n**المميزات الرئيسية:**\n`;
       bestTool.features.slice(0, 4).forEach(feature => {
         response += `✓ ${feature}\n`;
       });
     }
-    
+
     if (tools.length > 1) {
       response += `\n**بدائل أخرى:**\n`;
       tools.slice(1, 3).forEach((tool, index) => {
@@ -580,7 +620,7 @@ class TolzyAIService {
         response += `${index + 2}. ${tool.name} ${altToolLink} (${tool.rating}/5) - ${this.translatePricing(tool.pricing)}\n`;
       });
     }
-    
+
     return response;
   }
 
@@ -594,26 +634,26 @@ class TolzyAIService {
 
     const tool = tools[0];
     const categories = Array.isArray(tool.category) ? tool.category.join('، ') : tool.category;
-    
+
     const toolLink = tool.link || `/tools/${tool.id}`;
     let response = `**معلومات عن ${tool.name}** ${toolLink}\n\n`;
-    
+
     if (tool.description) {
       response += `📝 **الوصف:**\n${tool.description}\n\n`;
     }
-    
+
     response += `📊 **التفاصيل:**\n`;
     response += `• التقييم: ${tool.rating}/5 ⭐\n`;
     response += `• التسعير: ${this.translatePricing(tool.pricing)} 💰\n`;
     response += `• الفئة: ${categories} 📂\n`;
-    
+
     if (tool.features && tool.features.length > 0) {
       response += `\n✨ **المميزات:**\n`;
       tool.features.forEach(feature => {
         response += `• ${feature}\n`;
       });
     }
-    
+
     response += `\nهل تريد معرفة المزيد أو مقارنتها بأداة أخرى؟`;
     return response;
   }
@@ -627,7 +667,7 @@ class TolzyAIService {
       `أهلاً وسهلاً! 🌟 أنا هنا لمساعدتك في إيجاد أفضل أدوات الذكاء الاصطناعي.\n\nما الذي تبحث عنه؟`,
       `مرحباً بك! 🎯 يمكنني مساعدتك في:\n• البحث عن أدوات\n• المقارنة بين الأدوات\n• اقتراح أفضل الأدوات\n\nما احتياجك؟`
     ];
-    
+
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
 
@@ -638,7 +678,7 @@ class TolzyAIService {
     if (tools.length > 0) {
       return this.generateSearchResponse(query, tools);
     }
-    
+
     return `أنا Tolzy AI، متخصص في أدوات الذكاء الاصطناعي.\n\nيمكنني مساعدتك في:\n\n🔍 **البحث** - "أريد أداة للكتابة"\n⚖️ **المقارنة** - "قارن بين ChatGPT و Gemini"\n💡 **التوصية** - "أحتاج أداة للتصميم"\n📊 **المعلومات** - "ما هو ChatGPT؟"\n\nجرّب سؤالي عن أي شيء!`;
   }
 
@@ -690,7 +730,7 @@ class TolzyAIService {
   getStats() {
     return {
       totalTools: this.tools.length,
-      categories: [...new Set(this.tools.flatMap(t => 
+      categories: [...new Set(this.tools.flatMap(t =>
         Array.isArray(t.category) ? t.category : [t.category]
       ))].length,
       freeTools: this.tools.filter(t => t.pricing === 'Free').length,
@@ -714,6 +754,54 @@ class TolzyAIService {
    */
   async forceRefresh(): Promise<void> {
     await this.refreshTools();
+  }
+
+  /**
+   * ترجمة النص إلى العربية باستخدام Gemini
+   */
+  async translateToArabic(text: string): Promise<string> {
+    if (!genAI) return text;
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const prompt = `Translate the following text to Arabic. Maintain the professional tone and technical terms where appropriate. Only return the translated text.\n\nText: ${text}`;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text().trim();
+    } catch (error) {
+      console.error('Translation failed:', error);
+      return text;
+    }
+  }
+
+  /**
+   * تحليل محتوى الكورس لاستخراج المعلومات
+   */
+  async analyzeCourseContent(title: string, description: string): Promise<{ isFree: boolean, platform: string, language: string, hasCertificate: boolean }> {
+    if (!genAI) return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
+
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const prompt = `Analyze the following course title and description. Extract the likely platform (e.g., Coursera, Udemy, YouTube), whether it's likely free or paid, the language, and if it offers a certificate.
+      
+      Title: ${title}
+      Description: ${description}
+      
+      Return ONLY a JSON object with this format:
+      {
+        "isFree": boolean,
+        "platform": "string",
+        "language": "string",
+        "hasCertificate": boolean
+      }`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
+    }
   }
 }
 

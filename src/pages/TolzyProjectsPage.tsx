@@ -1,7 +1,7 @@
 import React from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import SEO from '../components/SEO';
-import { ExternalLink, Sparkles, Code2, BookOpen, Rocket } from 'lucide-react';
+import { ExternalLink, Sparkles, BookOpen } from 'lucide-react';
 
 interface TolzyProject {
   id: string;
@@ -16,40 +16,13 @@ interface TolzyProject {
 const TolzyProjectsPage: React.FC = () => {
   const projects: TolzyProject[] = [
     {
-      id: 'tolzy-stack',
-      name: 'Tolzy Stack',
-      description: 'مكتبة ذكية لأفضل المشاريع مفتوحة المصدر - اكتشف، تعلّم، وطوّر مع آلاف المشاريع من GitHub',
-      url: 'https://tolzy-stack.vercel.app',
-      icon: <Code2 className="w-12 h-12" />,
-      color: 'purple',
-      status: 'live'
-    },
-    {
-      id: 'tolzy-tools',
-      name: 'Tolzy Tools',
-      description: 'أفضل أدوات الذكاء الاصطناعي والتعليمية - أكثر من 150+ أداة مجانية ومدفوعة',
-      url: 'https://tolzy.vercel.app',
-      icon: <Sparkles className="w-12 h-12" />,
-      color: 'indigo',
-      status: 'live'
-    },
-    {
       id: 'tolzy-learn',
       name: 'Tolzy Learn',
       description: 'منصة تعليمية تفاعلية بالذكاء الاصطناعي - دورات، تمارين، ومشاريع حقيقية',
-      url: '#',
+      url: '/tolzy-learn',
       icon: <BookOpen className="w-12 h-12" />,
       color: 'green',
-      status: 'coming-soon'
-    },
-    {
-      id: 'tolzy-dev',
-      name: 'Tolzy Dev',
-      description: 'أدوات ومكتبات للمطورين - مكتبات جاهزة وأدوات تطوير متقدمة',
-      url: '#',
-      icon: <Rocket className="w-12 h-12" />,
-      color: 'orange',
-      status: 'coming-soon'
+      status: 'live'
     }
   ];
 
@@ -127,7 +100,7 @@ const TolzyProjectsPage: React.FC = () => {
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                       {project.name}
                     </h3>
-                    
+
                     <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6">
                       {project.description}
                     </p>

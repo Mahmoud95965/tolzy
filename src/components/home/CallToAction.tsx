@@ -9,19 +9,30 @@ const CallToAction: React.FC = () => {
   const { t } = useTranslation();
   const { featuredTools } = useTools();
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  // عرض 3 أدوات في المرة الواحدة
-  const itemsPerPage = 3;
+
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setItemsPerPage(window.innerWidth < 768 ? 1 : 3);
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const totalPages = Math.ceil(featuredTools.length / itemsPerPage);
-  
+
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % totalPages);
   };
-  
+
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + totalPages) % totalPages);
   };
-  
+
   const visibleTools = featuredTools.slice(
     currentIndex * itemsPerPage,
     (currentIndex + 1) * itemsPerPage
@@ -40,7 +51,7 @@ const CallToAction: React.FC = () => {
           >
             <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
           </button>
-          
+
           <button
             onClick={nextSlide}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white dark:bg-gray-800 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
@@ -65,108 +76,107 @@ const CallToAction: React.FC = () => {
                   key={tool.id}
                   className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                {/* شارة اختيار المحرر */}
-                {index === 0 && (
-                  <div className="absolute top-3 left-3 z-10">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg">
-                      <Award className="w-3.5 h-3.5 text-white" />
-                      <span className="text-xs font-bold text-white">اختيار المحرر</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Gradient Overlay at Top */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20" />
-
-                <div className="relative p-6">
-                  {/* Tool Header */}
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="relative flex-shrink-0">
-                      <div className="rounded-2xl ring-4 ring-white dark:ring-gray-800 overflow-hidden">
-                        <ToolImage
-                          imageUrl={tool.imageUrl}
-                          name={tool.name}
-                          categoryName={primaryCategory}
-                          subcategoryName={primarySubcategory}
-                          size="md"
-                          className="shadow-xl"
-                        />
-                      </div>
-                      {/* Verified Badge */}
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
-                        <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                  {/* شارة اختيار المحرر */}
+                  {index === 0 && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg">
+                        <Award className="w-3.5 h-3.5 text-white" />
+                        <span className="text-xs font-bold text-white">اختيار المحرر</span>
                       </div>
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {tool.name}
-                      </h3>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < (tool.rating || 4)
-                                ? 'text-yellow-400 fill-yellow-400'
-                                : 'text-gray-300 dark:text-gray-600'
-                            }`}
+                  )}
+
+                  {/* Gradient Overlay at Top */}
+                  <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20" />
+
+                  <div className="relative p-6">
+                    {/* Tool Header */}
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="rounded-2xl ring-4 ring-white dark:ring-gray-800 overflow-hidden">
+                          <ToolImage
+                            imageUrl={tool.imageUrl}
+                            name={tool.name}
+                            categoryName={primaryCategory}
+                            subcategoryName={primarySubcategory}
+                            size="md"
+                            className="shadow-xl"
                           />
-                        ))}
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 mr-1">
-                          {tool.rating || 4}.0
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          ({tool.savedBy?.length || 0})
-                        </span>
+                        </div>
+                        {/* Verified Badge */}
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
+                          <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {tool.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${i < (tool.rating || 4)
+                                  ? 'text-yellow-400 fill-yellow-400'
+                                  : 'text-gray-300 dark:text-gray-600'
+                                }`}
+                            />
+                          ))}
+                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 mr-1">
+                            {tool.rating || 4}.0
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            ({tool.savedBy?.length || 0})
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Pricing Badge */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                      {t(`pricing.${tool.pricing}`)}
-                    </span>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-semibold">{tool.savedBy?.length || 0}</span>
-                      <span>💾</span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-                    {tool.description}
-                  </p>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    {tool.tags?.slice(0, 3).map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800"
-                      >
-                        #{tag}
+                    {/* Pricing Badge */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                        {t(`pricing.${tool.pricing}`)}
                       </span>
-                    ))}
+                      <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                        <span className="font-semibold">{tool.savedBy?.length || 0}</span>
+                        <span>💾</span>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
+                      {tool.description}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-5">
+                      {tool.tags?.slice(0, 3).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Visit Button */}
+                    <Link
+                      to={`/tools/${tool.id}`}
+                      className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-xl group-hover:scale-[1.02]"
+                    >
+                      {t('common.visit')}
+                      <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
 
-                  {/* Visit Button */}
-                  <Link
-                    to={`/tools/${tool.id}`}
-                    className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-xl group-hover:scale-[1.02]"
-                  >
-                    {t('common.visit')}
-                    <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  {/* Bottom Gradient Border */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-
-                {/* Bottom Gradient Border */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-            );
+              );
             })}
           </div>
 
@@ -176,11 +186,10 @@ const CallToAction: React.FC = () => {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentIndex
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentIndex
                     ? 'bg-indigo-600 dark:bg-indigo-400 w-8'
                     : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-                }`}
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}

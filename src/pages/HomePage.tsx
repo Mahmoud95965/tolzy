@@ -33,21 +33,21 @@ const HomePage: React.FC = () => {
 
   return (
     <PageLayout>
-      <SEO 
-        title="Tolzy - أفضل أدوات الذكاء الاصطناعي والتعليمية المجانية 2025"
-        description="اكتشف أكثر من 150+ أداة ذكاء اصطناعي مجانية ومدفوعة. ChatGPT, Google Gemini, Midjourney, DALL-E, Claude, Copilot. أدوات تعليمية للطلاب والمعلمين. أدوات الكتابة، التصميم، البرمجة، البحث العلمي. ابدأ مجاناً!"
-        keywords="tolzy, أدوات ذكاء اصطناعي, AI tools, ChatGPT, Google Gemini, Claude AI, Midjourney, DALL-E, أدوات تعليمية مجانية, أدوات للطلاب, أدوات البرمجة, تصميم بالذكاء الاصطناعي, أدوات الكتابة, أدوات البحث العلمي, أدوات الإنتاجية, تعلم اللغات, أدوات مجانية, free AI tools, educational tools, AI للطلاب, AI للمعلمين, أفضل أدوات AI 2025"
+      <SEO
+        title="Tolzy - المنصة العربية الأولى لأدوات الذكاء الاصطناعي والتعليم | +200 أداة وكورس مجاني"
+        description="اكتشف أقوى منصة عربية لأدوات الذكاء الاصطناعي. دليل شامل لأكثر من 200 أداة (ChatGPT, Gemini, Claude, Midjourney). كورسات تعليمية مجانية في البرمجة والذكاء الاصطناعي. أدوات للطلاب، الباحثين، المبرمجين، والمصممين. مقارنات حقيقية، تقييمات موثوقة، وتحديثات يومية. ابدأ رحلة التعلم والإنتاجية مع Tolzy الآن مجاناً!"
+        keywords="tolzy, تولزي, أدوات ذكاء اصطناعي, AI tools 2025, ChatGPT 4, Google Gemini Pro, Claude 3 Opus, Midjourney v6, DALL-E 3, Stable Diffusion, أدوات تعليمية مجانية, كورسات برمجة مجانية, تعلم الذكاء الاصطناعي, أدوات البحث العلمي, Consensus, Elicit, SciSpace, أدوات الكتابة, Jasper, Copy.ai, Grammarly, أدوات التصميم, Canva AI, Leonardo.ai, أدوات البرمجة, GitHub Copilot, Cursor IDE, أدوات الفيديو, Runway, HeyGen, Sora, أدوات الإنتاجية, Notion AI, أدوات الطلاب, حل الواجبات بالذكاء الاصطناعي, تلخيص الملفات, تحويل النص إلى كلام, تحويل الكلام إلى نص, أفضل مواقع الذكاء الاصطناعي, دليل أدوات AI, تطبيقات ذكاء اصطناعي للأندرويد والايفون, تعلم الآلة, علم البيانات, هندسة الأوامر, Prompt Engineering, فري لانسر, العمل الحر, الربح من الذكاء الاصطناعي"
         url="/"
       />
       <Hero />
-      
-      <PopularToolsSection 
+
+      <PopularToolsSection
         popularTools={featuredTools}
         newTools={newTools}
       />
-      
+
       <AIToolCategories />
-      
+
       <CallToAction />
     </PageLayout>
   );

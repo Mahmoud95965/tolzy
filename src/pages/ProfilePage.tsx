@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import SavedTools from '../components/tools/SavedTools';
 import { updateProfile } from 'firebase/auth';
-import { User, Camera, Loader, Mail, Calendar, Shield, Upload, Settings, Edit2, Check, X, Award, Heart, Bookmark, Activity } from 'lucide-react';
+import { User, Camera, Loader, Mail, Calendar, Shield, Upload, Settings, Edit2, Check, X, Award, Heart, Bookmark, Activity, BookOpen } from 'lucide-react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db } from '../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -25,7 +25,7 @@ const ProfilePage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const storage = getStorage();
-  
+
   // التحقق من صلاحيات المسؤول
   const isAdmin = user?.email === 'mahmoud@gmail.com';
 
@@ -72,36 +72,36 @@ const ProfilePage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       setUploadProgress(0);
-      
+
       // Create a safe filename without special characters
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop();
       const safeFileName = `profile_${timestamp}.${fileExtension}`;
-      
+
       // Upload image to Firebase Storage
       const storageRef = ref(storage, `profile-images/${user.uid}/${safeFileName}`);
-      
+
       console.log('📤 Uploading image to:', `profile-images/${user.uid}/${safeFileName}`);
-      
+
       const uploadResult = await uploadBytes(storageRef, file);
       setUploadProgress(40);
-      
+
       console.log('✅ Upload complete, getting download URL...');
-      
+
       // Get the download URL
       const downloadURL = await getDownloadURL(uploadResult.ref);
       setUploadProgress(60);
-      
+
       console.log('🔗 Download URL:', downloadURL);
-      
+
       // Update user profile in Firebase Auth
       await updateProfile(auth.currentUser!, {
         photoURL: downloadURL
       });
       setUploadProgress(80);
-      
+
       console.log('✅ Updated Firebase Auth');
-      
+
       // Update user profile in Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await updateDoc(userDocRef, {
@@ -109,11 +109,11 @@ const ProfilePage: React.FC = () => {
         updatedAt: new Date().toISOString()
       });
       setUploadProgress(100);
-      
+
       console.log('✅ Updated Firestore');
-      
+
       setSuccess('تم تحديث الصورة بنجاح!');
-      
+
       // Force refresh to show new image
       setTimeout(() => window.location.reload(), 1000);
     } catch (err: any) {
@@ -139,13 +139,13 @@ const ProfilePage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Update displayName in Firebase Auth
       const newDisplayName = `${firstName.trim()} ${lastName.trim()}`;
       await updateProfile(auth.currentUser!, {
         displayName: newDisplayName
       });
-      
+
       // Update user data in Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await updateDoc(userDocRef, {
@@ -154,10 +154,10 @@ const ProfilePage: React.FC = () => {
         displayName: newDisplayName,
         updatedAt: new Date().toISOString()
       });
-      
+
       setSuccess('تم تحديث الملف الشخصي بنجاح!');
       setIsEditing(false);
-      
+
       // Force refresh to show new name
       setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
@@ -199,7 +199,7 @@ const ProfilePage: React.FC = () => {
           <div className="relative h-32 bg-gradient-to-r from-slate-200/80 to-blue-100/80 dark:from-slate-700/80 dark:to-slate-600/80 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/20 dark:to-black/20"></div>
           </div>
-          
+
           <div className="relative px-6 pb-6">
             {/* Profile Image */}
             <div className="flex items-start justify-between -mt-16">
@@ -218,7 +218,7 @@ const ProfilePage: React.FC = () => {
                         <User className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
                       </div>
                     )}
-                    
+
                     {/* Upload Progress */}
                     {uploadProgress > 0 && uploadProgress < 100 && (
                       <div className="absolute inset-0 bg-black/70 rounded-2xl flex flex-col items-center justify-center">
@@ -226,7 +226,7 @@ const ProfilePage: React.FC = () => {
                         <div className="text-white text-sm font-bold">{uploadProgress}%</div>
                       </div>
                     )}
-                    
+
                     {/* Hover Overlay */}
                     {!isLoading && (
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 rounded-2xl transition-all duration-300 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100">
@@ -235,7 +235,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                     )}
                   </label>
-                  
+
                   <input
                     type="file"
                     id="photo-upload"
@@ -245,7 +245,7 @@ const ProfilePage: React.FC = () => {
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 {/* Camera Button Badge */}
                 <div className="absolute -bottom-2 -right-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-2.5 shadow-lg border-2 border-white dark:border-gray-800">
                   <Camera className="h-4 w-4 text-white" />
@@ -312,7 +312,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{animationDelay: '0.1s'}}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">الأدوات المفضلة</p>
@@ -326,7 +326,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{animationDelay: '0.2s'}}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">النشاط</p>
@@ -347,7 +347,7 @@ const ProfilePage: React.FC = () => {
               معلومات الحساب
             </h3>
           </div>
-          
+
           {/* Profile content */}
           <div className="p-6">
             {isEditing ? (
@@ -529,6 +529,30 @@ const ProfilePage: React.FC = () => {
                       <h4 className="text-lg font-semibold text-white mb-1">رفع الأدوات</h4>
                       <p className="text-sm text-indigo-100">
                         رفع أدوات جديدة من ملفات JSON أو Excel
+                      </p>
+                      <div className="mt-3 flex items-center text-white text-sm font-medium">
+                        <span>الذهاب إلى الصفحة</span>
+                        <svg className="w-4 h-4 mr-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* إدارة Tolzy Learn */}
+                <Link
+                  to="/admin/tolzy-learn"
+                  className="bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all duration-300 rounded-xl p-6 group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-white/20 p-3 rounded-lg group-hover:scale-110 transition-transform">
+                      <BookOpen className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-white mb-1">إدارة Tolzy Learn</h4>
+                      <p className="text-sm text-indigo-100">
+                        إضافة وتعديل المحتوى التقني والدورات
                       </p>
                       <div className="mt-3 flex items-center text-white text-sm font-medium">
                         <span>الذهاب إلى الصفحة</span>

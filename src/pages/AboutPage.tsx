@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageLayout from '../components/layout/PageLayout';
 import SEO from '../components/SEO';
-import { 
-  BookOpen, 
-  Search, 
-  Users, 
-  Sparkles, 
-  CheckCircle, 
+import {
+  BookOpen,
+  Search,
+  Users,
+  Sparkles,
+  CheckCircle,
   Star,
   Zap,
   Shield,
@@ -38,7 +38,7 @@ const AboutPage: React.FC = () => {
   const values = t('about.values.items', { returnObjects: true }) as ValueItem[];
 
   const stats = [
-    { number: '200+', label: 'أداة ذكاء اصطناعي', icon: <Sparkles className="w-6 h-6" /> },
+    { number: '400+', label: 'أداة ذكاء اصطناعي', icon: <Sparkles className="w-6 h-6" /> },
     { number: '10+', label: 'فئات متنوعة', icon: <Target className="w-6 h-6" /> },
     { number: '1000+', label: 'مستخدم نشط', icon: <Users className="w-6 h-6" /> },
     { number: '100%', label: 'محتوى عربي', icon: <Heart className="w-6 h-6" /> },
@@ -46,7 +46,7 @@ const AboutPage: React.FC = () => {
 
   return (
     <PageLayout>
-      <SEO 
+      <SEO
         title="عن Tolzy - منصة أدوات الذكاء الاصطناعي"
         description="تعرف على Tolzy، منصتك الشاملة لاكتشاف أفضل أدوات الذكاء الاصطناعي بالعربية"
         url="/about"
@@ -60,7 +60,7 @@ const AboutPage: React.FC = () => {
           <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-purple-400 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
           <div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-indigo-400 blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6">
@@ -74,15 +74,15 @@ const AboutPage: React.FC = () => {
               {t('about.subtitle')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link 
-                to="/guide" 
+              <Link
+                to="/guide"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
               >
                 <BookOpen className="w-5 h-5" />
                 {t('about.viewGuide')}
               </Link>
-              <Link 
-                to="/tools" 
+              <Link
+                to="/tools"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border-2 border-white/20"
               >
                 <ArrowRight className="w-5 h-5" />
@@ -105,7 +105,7 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Mission Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="mb-24">
@@ -121,7 +121,7 @@ const AboutPage: React.FC = () => {
               {t('about.mission.description')}
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 p-8 rounded-2xl border-2 border-blue-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
@@ -139,7 +139,7 @@ const AboutPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="group relative bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-800 p-8 rounded-2xl border-2 border-purple-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
               <div className="relative">
@@ -173,7 +173,7 @@ const AboutPage: React.FC = () => {
               منصة متكاملة تجمع أفضل أدوات الذكاء الاصطناعي التعليمية في مكان واحد، مع دعم كامل باللغة العربية
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <div className="group relative bg-white dark:bg-gray-800 p-8 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-600 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -189,7 +189,7 @@ const AboutPage: React.FC = () => {
                 {t('about.offerings.curation.description')}
               </p>
             </div>
-            
+
             <div className="group relative bg-white dark:bg-gray-800 p-8 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
               <div className="flex items-center justify-center mb-6">
@@ -204,7 +204,7 @@ const AboutPage: React.FC = () => {
                 {t('about.offerings.information.description')}
               </p>
             </div>
-            
+
             <div className="group relative bg-white dark:bg-gray-800 p-8 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-teal-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
               <div className="flex items-center justify-center mb-6">
@@ -221,7 +221,7 @@ const AboutPage: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Values Section */}
         <div className="mb-16">
           <div className="text-center mb-16">
@@ -233,11 +233,11 @@ const AboutPage: React.FC = () => {
               {t('about.values.title')}
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             {values.map((value: ValueItem, index: number) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="group relative bg-white dark:bg-gray-800 p-8 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden"
               >
                 <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${valueIcons[index].color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`} />
