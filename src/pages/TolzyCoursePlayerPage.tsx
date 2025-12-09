@@ -40,7 +40,8 @@ const TolzyCoursePlayerPage: React.FC = () => {
                 console.log(`Updated student count for ${course.title}: ${newCount}`);
             }
         } catch (error) {
-            console.error("Failed to auto-refresh student count:", error);
+            // calculated silence: scraping often fails due to adblockers/CORS/etc
+            // console.warn("Auto-refresh skipped");
         }
     };
 

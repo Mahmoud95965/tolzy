@@ -13,18 +13,14 @@ router.post('/', async (req, res) => {
 
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
+                'Referer': 'https://www.google.com/',
                 'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
                 'Cache-Control': 'max-age=0'
-            }
+            },
+            timeout: 8000 // 8 second timeout to respect Vercel limits
         });
 
         const html = response.data;
@@ -133,7 +129,18 @@ router.post('/', async (req, res) => {
                 return res.status(403).json({ error: 'Udemy security blocked the request (Cloudflare). Please enter details manually.' });
             }
         }
-        res.status(500).json({ error: 'Failed to fetch course details', details: error.message });
+        // Fail gracefully instead of 500, so frontend doesn't show red errors
+        console.warn(`Scraping failed for ${url}:`, error.message);
+        res.json({
+            title: '',
+            description: '',
+            thumbnail: '',
+            rating: 0,
+            reviewsCount: 0,
+            datePublished: '',
+            studentsCount: 0,
+            error: 'Scraping blocked or failed'
+        });
     }
 });
 
