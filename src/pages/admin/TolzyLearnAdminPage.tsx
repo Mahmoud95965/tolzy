@@ -115,19 +115,19 @@ const TolzyLearnAdminPage: React.FC = () => {
 
             const data = await response.json();
 
-            // 2. AI Analysis for better details
-            setIsAnalyzing(true);
-            const analysis = await tolzyAI.analyzeCourseContent(data.title || '', data.description || '');
+            // 2. AI Analysis - Temporarily Disabled
+            // setIsAnalyzing(true);
+            // const analysis = await tolzyAI.analyzeCourseContent(data.title || '', data.description || '');
 
             setCurrentCourse(prev => ({
                 ...prev,
                 title: data.title || prev.title,
                 description: data.description || prev.description,
                 thumbnail: data.thumbnail || prev.thumbnail,
-                platform: analysis.platform !== 'Unknown' ? analysis.platform : new URL(currentCourse.sourceUrl!).hostname.replace('www.', ''),
-                language: analysis.language || 'English',
-                hasCertificate: analysis.hasCertificate,
-                price: analysis.isFree ? 'free' : 'paid',
+                platform: new URL(currentCourse.sourceUrl!).hostname.replace('www.', ''),
+                language: 'English', // Default
+                hasCertificate: false, // Default
+                price: 'free', // Default
                 // Use fetched rating/reviews if available, otherwise keep previous or default
                 rating: data.rating || prev.rating || 0,
                 reviewsCount: data.reviewsCount || prev.reviewsCount || 0,
@@ -141,7 +141,7 @@ const TolzyLearnAdminPage: React.FC = () => {
             alert(error.message || 'Failed to fetch course data. Please fill details manually.');
         } finally {
             setIsFetching(false);
-            setIsAnalyzing(false);
+            // setIsAnalyzing(false);
         }
     };
 

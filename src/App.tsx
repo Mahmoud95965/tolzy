@@ -21,10 +21,12 @@ import NewsPage from './pages/NewsPage';
 import NewsDetailPage from './pages/NewsDetailPage';
 import TolzyProjectsPage from './pages/TolzyProjectsPage';
 import UpdatesPage from './pages/UpdatesPage';
-import TolzyAIChat from './components/chat/TolzyAIChat';
+// import TolzyAIChat from './components/chat/TolzyAIChat';
 import TolzyLearnPage from './pages/TolzyLearnPage';
 import TolzyCoursePlayerPage from './pages/TolzyCoursePlayerPage';
 import TolzyLearnAdminPage from './pages/admin/TolzyLearnAdminPage';
+import TolzyPathsPage from './pages/TolzyPathsPage';
+import TolzyPathDetailsPage from './pages/TolzyPathDetailsPage';
 
 function App() {
   return (
@@ -50,6 +52,8 @@ function App() {
                 <Route path="/updates" element={<UpdatesPage />} />
                 <Route path="/tolzy-learn" element={<TolzyLearnPage />} />
                 <Route path="/tolzy-learn/course/:courseId" element={<TolzyCoursePlayerPage />} />
+                <Route path="/paths" element={<TolzyPathsPage />} />
+                <Route path="/paths/:pathId" element={<TolzyPathDetailsPage />} />
 
                 {/* Protected Routes */}
                 <Route
@@ -80,8 +84,9 @@ function App() {
                 />
               </Routes>
 
-              {/* Tolzy AI Chat - Available on all pages */}
+              {/* Tolzy AI Chat - Temporarily Removed
               <TolzyAIChat />
+              */}
             </Router>
           </ToolsProvider>
         </AuthProvider>

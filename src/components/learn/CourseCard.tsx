@@ -91,6 +91,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
                         </span>
                         <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded capitalize">
                             <Users className="w-3 h-3" />
+                            {course.studentsCount ? course.studentsCount.toLocaleString() : '0'}
+                        </span>
+                        <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded capitalize">
+                            <BookOpen className="w-3 h-3" />
                             {course.level || 'Beginner'}
                         </span>
                     </div>

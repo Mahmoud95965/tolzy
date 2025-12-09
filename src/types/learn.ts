@@ -44,3 +44,26 @@ export interface Course {
     reviewsCount?: number;
     whatYouWillLearn?: string[];
 }
+
+export interface PathStep {
+    id: string;
+    title: string;
+    description: string;
+    courses?: string[]; // Course IDs
+    resources?: { title: string; url: string; type: 'article' | 'video' | 'project' }[];
+    duration?: string;
+}
+
+export interface LearningPath {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.ReactNode; // Changed to ReactNode to support Lucide icons
+    color: string;
+    level: 'beginner' | 'intermediate' | 'advanced';
+    duration: string;
+    steps: PathStep[];
+    featured?: boolean;
+    jobRole?: string;
+    averageSalary?: string;
+}

@@ -3,64 +3,83 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://tolzy.me/</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tolzy.me/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/" />
   </url>
   <url>
     <loc>https://tolzy.me/tools</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/tools" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/tools" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/tools" />
   </url>
   <url>
     <loc>https://tolzy.me/about</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/about" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/about" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/about" />
   </url>
   <url>
     <loc>https://tolzy.me/news</loc>
-    <lastmod>2025-10-30</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolzy.me/projects</loc>
-    <lastmod>2025-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/news" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/news" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/news" />
   </url>
   <url>
     <loc>https://tolzy.me/guide</loc>
-    <lastmod>2025-10-30</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/guide" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/guide" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/guide" />
   </url>
   <url>
     <loc>https://tolzy.me/faq</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/faq" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/faq" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/faq" />
   </url>
   <url>
     <loc>https://tolzy.me/contact</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/contact" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/contact" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/contact" />
   </url>
   <url>
     <loc>https://tolzy.me/privacy-policy</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/privacy-policy" />
   </url>
   <url>
     <loc>https://tolzy.me/terms</loc>
-    <lastmod>2025-10-23</lastmod>
+    <lastmod>2025-12-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.me/terms" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://tolzy.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://neovex.vercel.app/terms" />
   </url>
 </urlset>

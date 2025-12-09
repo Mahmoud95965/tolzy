@@ -10,35 +10,35 @@ const Hero: React.FC = () => {
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full bg-blue-400 dark:bg-blue-500 blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-purple-400 dark:bg-purple-500 blur-3xl"></div>
       </div>
-      
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
         <div className="text-center">
           {/* Top badge */}
           <div className="inline-flex items-center justify-center mb-8 px-6 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-            <span className="text-white font-medium text-sm">انضم إلى 350,000+ من محترفي الذكاء الاصطناعي</span>
+            <span className="text-white font-medium text-sm">انضم إلى 350,000+ من المطورين والمحترفين</span>
           </div>
-          
+
           {/* Main heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight mb-6">
             كل ما يحتاجه عملك<br />
-            <span className="block mt-2">لإتقان الذكاء الاصطناعي، كل شيء في مكان واحد.</span>
+            <span className="block mt-2">لإتقان أحدث التقنيات، كل شيء في مكان واحد.</span>
           </h1>
-          
+
           {/* Subtitle */}
           <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-white/90 leading-relaxed">
-            استكشف أفضل أدوات الذكاء الاصطناعي وتعلم كيفية استخدامها بفعالية.
+            استكشف أفضل الأدوات التقنية وتعلم كيفية استخدامها بفعالية.
           </p>
-          
+
           {/* CTA Button */}
           <div className="mt-10 flex items-center justify-center">
-            <Link 
-              to="/tools" 
+            <Link
+              to="/tools"
               className="bg-white hover:bg-gray-100 transition-colors text-indigo-700 px-8 py-4 rounded-lg text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
             >
               انضم مجاناً
             </Link>
           </div>
-          
+
           {/* Trusted by section */}
           <div className="mt-20">
             <p className="text-white/60 text-sm font-medium tracking-wider uppercase mb-8">

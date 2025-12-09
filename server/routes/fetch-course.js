@@ -35,10 +35,11 @@ router.post('/', async (req, res) => {
         const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
         const image = $('meta[property="og:image"]').attr('content') || '';
 
-        // Extract JSON-LD for Rating, Reviews, and Date
+        // Extract JSON-LD for Rating, Reviews, Date, and Student Count
         let rating = 0;
         let reviewsCount = 0;
         let datePublished = '';
+        let studentsCount = 0;
 
         $('script[type="application/ld+json"]').each((i, el) => {
             try {
@@ -58,13 +59,54 @@ router.post('/', async (req, res) => {
                         if (item.datePublished) {
                             datePublished = item.datePublished;
                         }
-                        if ((rating > 0 || reviewsCount > 0) && datePublished) break; // Found enough info
+
+                        // Try to find InteractionCounter for enrollments
+                        if (item.interactionStatistic) {
+                            const stats = Array.isArray(item.interactionStatistic) ? item.interactionStatistic : [item.interactionStatistic];
+                            for (const stat of stats) {
+                                if (stat.interactionType === 'http://schema.org/RegisterAction' || stat.interactionType === 'RegisterAction') {
+                                    studentsCount = parseInt(stat.userInteractionCount) || 0;
+                                }
+                            }
+                        }
                     }
                 }
             } catch (e) {
                 console.error('Error parsing JSON-LD:', e.message);
             }
         });
+
+        // Fallback: Try regex for student count in body text if not found in JSON-LD
+        if (studentsCount === 0) {
+            // Udemy: "123,456 students"
+            // Coursera: "123k enrolled"
+            const bodyText = $('body').text();
+
+            // Regex for patterns like "123,456 students", "1.5M learners", "Enrolled: 500"
+            const studentPatterns = [
+                /([\d,.]+[kKmM]?)\s+students/i,
+                /([\d,.]+[kKmM]?)\s+learners/i,
+                /([\d,.]+[kKmM]?)\s+enrolled/i,
+                /enrolled\s*:\s*([\d,.]+[kKmM]?)/i
+            ];
+
+            for (const pattern of studentPatterns) {
+                const match = bodyText.match(pattern);
+                if (match) {
+                    // Convert "1.5k" or "1M" to numbers
+                    let numStr = match[1].toLowerCase().replace(/,/g, '');
+                    let multiplier = 1;
+                    if (numStr.includes('k')) { multiplier = 1000; numStr = numStr.replace('k', ''); }
+                    else if (numStr.includes('m')) { multiplier = 1000000; numStr = numStr.replace('m', ''); }
+
+                    const parsed = parseFloat(numStr);
+                    if (!isNaN(parsed)) {
+                        studentsCount = Math.floor(parsed * multiplier);
+                        break;
+                    }
+                }
+            }
+        }
 
         // Fallback: Try to find rating in meta tags or specific selectors if JSON-LD failed
         if (rating === 0) {
@@ -79,7 +121,8 @@ router.post('/', async (req, res) => {
             thumbnail: image,
             rating,
             reviewsCount,
-            datePublished
+            datePublished,
+            studentsCount
         });
 
     } catch (error) {

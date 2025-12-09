@@ -143,106 +143,8 @@ class TolzyAIService {
    * نظام Tolzy AI مع Google Gemini
    */
   async chat(userMessage: string, conversationHistory: ChatMessage[] = []): Promise<string> {
-    if (!this.isInitialized) {
-      await this.initialize();
-    }
-
-    // تحديث قاعدة البيانات إذا مر وقت طويل أو إذا كانت القائمة فارغة
-    if (this.shouldRefresh() || this.tools.length === 0) {
-      try {
-        await this.refreshTools();
-      } catch (error) {
-        console.warn('⚠️ فشل تحديث قاعدة البيانات، استخدام البيانات المخزنة');
-      }
-    }
-
-    // محاولة استخدام Ollama أولاً (إذا كان متاحاً)
-    try {
-      console.log('🦙 Checking Ollama connection...');
-      const ollamaResponse = await this.generateOllamaResponse(userMessage, conversationHistory);
-      if (ollamaResponse) {
-        console.log('✅ Ollama response received');
-        return ollamaResponse;
-      }
-    } catch (error) {
-      console.warn('⚠️ Ollama غير متاح أو حدث خطأ، الانتقال للمزود التالي...', error);
-    }
-
-    // إذا تم تهيئة OpenAI، استخدمه كمزوّد رئيسي للجيل
-    // تم تعطيل OpenAI مؤقتاً لتجنب أخطاء 401 بسبب مفاتيح API غير صالحة
-    // لإعادة التفعيل، قم بإزالة "false &&" وتأكد من صلاحية المفتاح
-    if (false && OPENAI_API_KEY && OPENAI_API_KEY.startsWith('sk-') && OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY' && this.isOpenAIKeyValid) {
-      try {
-        console.log('🤖 Tolzy AI (OpenAI) processing...');
-        const openaiText = await this.generateOpenAIResponse(userMessage, conversationHistory);
-        if (openaiText) {
-          console.log('✅ OpenAI response received');
-          return openaiText;
-        }
-        return this.generateLocalResponse(userMessage);
-      } catch (error: any) {
-        const status = error?.status || error?.response?.status;
-
-        if (status === 401) {
-          console.warn('⚠️ مفتاح OpenAI غير صالح (401). تم تعطيل OpenAI لهذه الجلسة.');
-          this.isOpenAIKeyValid = false;
-        } else if (status === 429) {
-          console.warn('⚠️ تم الوصول إلى حد استخدام OpenAI (429). سيتم استخدام نظام Tolzy المحلي لهذه الرسالة.', error);
-        } else {
-          console.warn('⚠️ OpenAI API فشل، التحويل للنظام المحلي...', error);
-        }
-
-        return this.generateLocalResponse(userMessage);
-      }
-    }
-
-    // إذا تم تعطيل Gemini مؤقتاً بسبب تجاوز الحد، استخدم النظام المحلي مباشرة
-    if (this.geminiDisabledUntil && Date.now() < this.geminiDisabledUntil) {
-      console.warn('⚠️ تم تجاوز حد استخدام Gemini مؤخراً، Tolzy AI يعمل الآن في الوضع المحلي فقط.');
-      return this.generateLocalResponse(userMessage);
-    }
-
-    // التحقق من API Key
-    if (!genAI) {
-      console.warn('⚠️ Gemini API غير متاح، استخدام النظام المحلي...');
-      return this.generateLocalResponse(userMessage);
-    }
-
-    try {
-      console.log('🤖 Tolzy AI (Gemini) processing...');
-
-      // إرسال جميع الأدوات للسياق
-      const context = this.createFullContext(userMessage);
-
-      // استخدام Gemini 3.0 Pro Preview
-      const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
-
-      const prompt = `${context}\n\nسؤال المستخدم: ${userMessage}\n\n⚠️ تذكير نهائي:\n- استخدم فقط IDs الموجودة في القاعدة أعلاه\n- لا تخترع أو تعدل أي ID\n- الرابط الصحيح: /tools/[exact-id-from-database]\n- مثال: إذا كان ID الأداة "chatgpt-4o" فالرابط /tools/chatgpt-4o\n\nأجب بالعربية بشكل مفيد ومختصر:`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
-      if (text) {
-        console.log('✅ Gemini response received');
-        return text;
-      }
-
-      return this.generateLocalResponse(userMessage);
-
-    } catch (error: any) {
-      const status = error?.status || error?.response?.status;
-
-      if (status === 429) {
-        // Too Many Requests - تعطيل طلبات Gemini لفترة واستخدام النظام المحلي فقط
-        this.geminiDisabledUntil = Date.now() + this.geminiCooldownMs;
-        console.warn('⚠️ تم الوصول إلى حد استخدام Gemini (429). سيتم استخدام نظام Tolzy المحلي فقط لفترة زمنية.', error);
-      } else {
-        console.warn('⚠️ Gemini API فشل، التحويل للنظام المحلي...', error);
-      }
-
-      return this.generateLocalResponse(userMessage);
-    }
+    console.warn('⚠️ AI Service is temporarily disabled.');
+    return "عذراً، خدمة الدردشة الذكية متوقفة حالياً للصيانة. يرجى المحاولة لاحقاً.";
   }
 
   /**
@@ -777,31 +679,8 @@ ${JSON.stringify(toolsData, null, 2)}
    * تحليل محتوى الكورس لاستخراج المعلومات
    */
   async analyzeCourseContent(title: string, description: string): Promise<{ isFree: boolean, platform: string, language: string, hasCertificate: boolean }> {
-    if (!genAI) return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
-
-    try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      const prompt = `Analyze the following course title and description. Extract the likely platform (e.g., Coursera, Udemy, YouTube), whether it's likely free or paid, the language, and if it offers a certificate.
-      
-      Title: ${title}
-      Description: ${description}
-      
-      Return ONLY a JSON object with this format:
-      {
-        "isFree": boolean,
-        "platform": "string",
-        "language": "string",
-        "hasCertificate": boolean
-      }`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(text);
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
-    }
+    console.warn('⚠️ AI Analysis is temporarily disabled.');
+    return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
   }
 }
 

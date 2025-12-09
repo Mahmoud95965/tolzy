@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  Search, 
-  Menu, 
+import {
+  Search,
+  Menu,
   X,
   Moon,
   Sun,
@@ -61,39 +61,38 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-500 ${
-      isScrolled 
-        ? 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl border-b border-slate-200/50 dark:border-slate-700/50' 
+    <nav className={`sticky top-0 z-50 transition-all duration-500 ${isScrolled
+        ? 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl border-b border-slate-200/50 dark:border-slate-700/50'
         : 'bg-white dark:bg-slate-900 shadow-md border-b border-transparent'
-    }`}>
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">          <Link to="/" className="flex-shrink-0 flex items-center group">
-            <div className="relative">
-              <img 
-                src="/image/tools/Hero.png" 
-                alt="Tolzy Logo" 
-                className="h-10 w-auto transition-all duration-300 group-hover:scale-110"
-                onError={(e) => {
-                  // Fallback to icon if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'block';
-                }}
-              />
-              <div className="hidden">
-                <BrainCircuit className="h-8 w-8 text-indigo-600 dark:text-indigo-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
-              </div>
-              <Sparkles className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+          <div className="relative">
+            <img
+              src="/image/tools/Hero.png"
+              alt="Tolzy Logo"
+              className="h-10 w-auto transition-all duration-300 group-hover:scale-110"
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+            <div className="hidden">
+              <BrainCircuit className="h-8 w-8 text-indigo-600 dark:text-indigo-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
             </div>
-            <span className="hidden md:inline-block mr-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-0.5 rounded-full font-semibold animate-pulse">AI</span>
-          </Link>
-          
+            <Sparkles className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+          </div>
+          {/* <span className="hidden md:inline-block mr-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-0.5 rounded-full font-semibold animate-pulse">AI</span> */}
+        </Link>
+
           {/* Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:justify-center flex-1">
             <div className="flex space-x-8 space-x-reverse">
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center px-3 py-2 text-sm font-semibold transition-all duration-300"
               >
                 <span className="relative">
@@ -101,14 +100,14 @@ const Navbar: React.FC = () => {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-slate-700 to-slate-600 dark:from-slate-400 dark:to-slate-500 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>
-              
+
               {/* Categories Dropdown */}
-              <div 
+              <div
                 className="relative"
                 onMouseEnter={() => setIsCategoriesOpen(true)}
                 onMouseLeave={() => setIsCategoriesOpen(false)}
               >
-                <button 
+                <button
                   className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all duration-300"
                   aria-expanded={isCategoriesOpen}
                   aria-haspopup="true"
@@ -120,14 +119,13 @@ const Navbar: React.FC = () => {
                   </span>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
                 </button>
-                
+
                 {/* Dropdown Menu - Only shows on hover */}
-                <div 
-                  className={`absolute top-full left-0 mt-2 w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 ${
-                    isCategoriesOpen 
-                      ? 'opacity-100 visible translate-y-0 scale-100' 
+                <div
+                  className={`absolute top-full left-0 mt-2 w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 ${isCategoriesOpen
+                      ? 'opacity-100 visible translate-y-0 scale-100'
                       : 'opacity-0 invisible -translate-y-4 scale-95 pointer-events-none'
-                  }`}
+                    }`}
                 >
                   <div className="p-2">
                     <Link
@@ -153,9 +151,9 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <Link 
-                to="/news" 
+
+              <Link
+                to="/news"
                 className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center px-3 py-2 text-sm font-semibold transition-all duration-300"
               >
                 <span className="relative">
@@ -167,9 +165,9 @@ const Navbar: React.FC = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
               </Link>
-              
-              <Link 
-                to="/projects" 
+
+              <Link
+                to="/projects"
                 className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center px-3 py-2 text-sm font-semibold transition-all duration-300"
               >
                 <span className="relative">
@@ -177,9 +175,9 @@ const Navbar: React.FC = () => {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-slate-700 to-slate-600 dark:from-slate-400 dark:to-slate-500 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>
-              
-              <Link 
-                to="/about" 
+
+              <Link
+                to="/about"
                 className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center px-3 py-2 text-sm font-semibold transition-all duration-300"
               >
                 <span className="relative">
@@ -189,10 +187,10 @@ const Navbar: React.FC = () => {
               </Link>
             </div>
           </div>
-          
+
           {/* Desktop Actions */}
           <div className="hidden sm:flex sm:items-center sm:ml-6 sm:space-x-4 sm:space-x-reverse">
-            <button 
+            <button
               onClick={toggleDarkMode}
               className="p-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 transition-all duration-300 hover:scale-110 hover:rotate-12"
               aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -200,17 +198,17 @@ const Navbar: React.FC = () => {
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
-            <button 
+            <button
               onClick={toggleSearch}
               className="p-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 transition-all duration-300 hover:scale-110"
             >
               <Search className="h-5 w-5" />
             </button>
-            
+
             {user ? (
               <UserProfile />
             ) : (
-              <Link 
+              <Link
                 to="/auth"
                 className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-800 hover:to-slate-700 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
               >
@@ -223,7 +221,7 @@ const Navbar: React.FC = () => {
           {/* Mobile Actions */}
           <div className="flex items-center gap-2 sm:hidden">
             {!user && (
-              <Link 
+              <Link
                 to="/auth"
                 className="inline-flex items-center p-2 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-800 hover:to-slate-700 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-md"
                 aria-label="تسجيل الدخول"
@@ -231,7 +229,7 @@ const Navbar: React.FC = () => {
                 <CircleUserRound className="h-5 w-5" />
               </Link>
             )}
-            <button 
+            <button
               onClick={toggleSearch}
               className="p-2 rounded-full text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-700 transition-all"
               aria-label="البحث"
@@ -251,31 +249,31 @@ const Navbar: React.FC = () => {
         {isOpen && (
           <div className="sm:hidden">
             <div className="pt-2 pb-3 space-y-1">
-              <Link 
+              <Link
                 to="/"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 {t('nav.home')}
               </Link>
-              <Link 
+              <Link
                 to="/tools"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 {t('nav.tools')}
               </Link>
-              <Link 
+              <Link
                 to="/news"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 الأخبار
               </Link>
-              <Link 
+              <Link
                 to="/projects"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 مشاريعنا
               </Link>
-              <Link 
+              <Link
                 to="/about"
                 className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
