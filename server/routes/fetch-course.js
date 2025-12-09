@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+
 const router = express.Router();
-const axios = require('axios');
-const cheerio = require('cheerio');
 
 router.post('/', async (req, res) => {
     try {
@@ -144,4 +145,4 @@ router.post('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

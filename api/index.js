@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const fetchCourseRoute = require('../server/routes/fetch-course');
+import express from 'express';
+import cors from 'cors';
+import fetchCourseRoute from '../server/routes/fetch-course.js';
 
 const app = express();
 
@@ -15,4 +15,4 @@ app.get('/', (req, res) => {
     res.json({ message: 'Tolzy API is running on Vercel' });
 });
 
-module.exports = app;
+export default app;
