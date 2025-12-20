@@ -2,11 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
-  Twitter, 
+  X, 
   Instagram, 
   Linkedin, 
-  Github,
   Heart,
+  Facebook,
   BrainCircuit,
   ChevronDown,
   ChevronUp
@@ -19,10 +19,10 @@ const Footer: React.FC = () => {
   const [isSupportOpen, setIsSupportOpen] = React.useState(false);
 
   const socialLinks = [
-    { icon: Twitter, href: 'https://twitter.com/zakerly', label: 'Twitter' },
-    { icon: Instagram, href: 'https://instagram.com/zakerly', label: 'Instagram' },
-    { icon: Linkedin, href: 'https://linkedin.com/company/zakerly', label: 'LinkedIn' },
-    { icon: Github, href: 'https://github.com/zakerly', label: 'GitHub' }
+    { icon: X, href: 'https://x.com/tolzyofficial', label: 'X' },
+    { icon: Instagram, href: 'https://www.facebook.com/tolzyai', label: 'Instagram' },
+    { icon: Linkedin, href: 'www.linkedin.com/in/mahmoud-founder-tolzy', label: 'LinkedIn' },
+    { icon: Facebook, href: 'https://www.facebook.com/tolzyai', label: 'Facebook' }
   ];
 
   return (
@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
                 <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 p-0.5 shadow-2xl shadow-slate-500/30 group-hover:shadow-slate-500/50 transition-all duration-500">
                   <div className="w-full h-full rounded-2xl bg-slate-900 p-3 flex items-center justify-center overflow-hidden">
                     <img 
-                      src="/image/tools/Hero.png" 
+                      src="/image/tools/Logo.png" 
                       alt="Tolzy Logo" 
                       className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110"
                       onError={(e) => {
