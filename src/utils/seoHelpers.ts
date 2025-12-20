@@ -13,7 +13,7 @@ export interface ToolSEO {
 export const generateToolSEO = (tool: any): ToolSEO => {
   const title = `${tool.name} - أداة ${tool.category} | Tolzy`;
   const description = `${tool.description} - ${tool.longDescription?.substring(0, 150) || tool.description}. تقييم: ${tool.rating}/5 من ${tool.reviewCount} مراجعة. ${tool.pricing === 'Free' ? 'مجاني تماماً' : tool.pricing === 'Freemium' ? 'نسخة مجانية متاحة' : 'مدفوع'}.`;
-  
+
   const keywords = [
     tool.name,
     ...tool.tags,
@@ -98,7 +98,7 @@ export const generateCategorySEO = (category: string, toolCount: number) => {
   };
 
   const arabicCategory = categoryNames[category] || category;
-  
+
   const title = `أفضل ${toolCount}+ أداة ${arabicCategory} بالذكاء الاصطناعي 2025 | Tolzy`;
   const description = `اكتشف أفضل ${toolCount} أداة ${arabicCategory} مدعومة بالذكاء الاصطناعي. أدوات مجانية ومدفوعة للطلاب والمحترفين. مراجعات وتقييمات حقيقية. ابدأ الآن مجاناً!`;
   const keywords = `أدوات ${arabicCategory}, ${category} tools, AI ${arabicCategory}, أدوات ذكاء اصطناعي ${arabicCategory}, أدوات مجانية ${arabicCategory}, tolzy, أدوات AI 2025`;
@@ -161,15 +161,52 @@ export const generateOrganizationData = () => {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Tolzy",
-    "alternateName": ["Tolzy Tools", "أدوات تولزي"],
-    "url": "https://tolzy.vercel.app",
-    "logo": "https://www.tolzy.me/src/Zakerly.png",
-    "description": "أفضل منصة عربية لأدوات الذكاء الاصطناعي والأدوات التعليمية المجانية - اكتشف ChatGPT, Gemini, Midjourney وأكثر من 150 أداة",
+    "alternateName": ["تولزي", "Tolzy Tools"],
+    "url": "https://www.tolzy.me",
+    "logo": "https://www.tolzy.me/image/tools/Hero.png",
+    "description": "Tolzy - شركة تقنية تعليمية متخصصة في تطوير منصات الذكاء الاصطناعي والتعليم التفاعلي. المنصة الرئيسية (tolzy.me) هي دليل شامل لأكثر من 400 أداة ذكاء اصطناعي. بالإضافة إلى منتجات أخرى: Tolzy Learn (منصة تعليمية تفاعلية)، و Tolzy Stack (مكتبة مشاريع GitHub مفتوحة المصدر).",
+    "foundingDate": "2024",
+    "founder": {
+      "@type": "Person",
+      "name": "محمود موسى"
+    },
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "Customer Service",
       "availableLanguage": ["Arabic", "English"]
-    }
+    },
+    "sameAs": [
+      "https://twitter.com/tolzytools"
+    ],
+    "makesOffer": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Tolzy Tools",
+          "description": "المنصة الرئيسية - دليل شامل لأكثر من 400 أداة ذكاء اصطناعي مع تقييمات ومقارنات احترافية",
+          "url": "https://www.tolzy.me/tools"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Tolzy Learn",
+          "description": "منصة تعليمية تفاعلية تقدم دورات وكورسات مجانية في البرمجة والذكاء الاصطناعي والتصميم",
+          "url": "https://www.tolzy.me/tolzy-learn"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Tolzy Stack",
+          "description": "مكتبة متخصصة لاستكشاف والتعلم من مشاريع GitHub مفتوحة المصدر",
+          "url": "https://www.tolzy.me/tolzy-stack"
+        }
+      }
+    ]
   };
 };
 
@@ -187,15 +224,61 @@ export const generateWebPageData = (title: string, description: string, url: str
     "isPartOf": {
       "@type": "WebSite",
       "name": "Tolzy",
-      "url": "https://tolzy.vercel.app"
+      "url": "https://www.tolzy.me"
     },
     "publisher": {
       "@type": "Organization",
       "name": "Tolzy",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://www.tolzy.me/src/Zakerly.png"
+        "url": "https://www.tolzy.me/image/tools/Hero.png"
       }
+    }
+  };
+};
+
+/**
+ * Generate Tolzy Ecosystem structured data
+ */
+export const generateTolzyEcosystemData = () => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Corporation",
+    "name": "Tolzy",
+    "description": "النظام البيئي الشامل لـ Tolzy - منصة متكاملة تجمع أدوات الذكاء الاصطناعي، التعليم التفاعلي، ومشاريع المصدر المفتوح",
+    "url": "https://www.tolzy.me",
+    "logo": "https://www.tolzy.me/image/tools/Hero.png",
+    "foundingDate": "2024",
+    "founder": {
+      "@type": "Person",
+      "name": "محمود موسى"
+    },
+    "owns": [
+      {
+        "@type": "Product",
+        "name": "Tolzy Tools",
+        "description": "دليل شامل لأكثر من 400 أداة ذكاء اصطناعي",
+        "category": "AI Tools Directory",
+        "url": "https://www.tolzy.me/tools"
+      },
+      {
+        "@type": "Product",
+        "name": "Tolzy Learn",
+        "description": "منصة تعليمية تفاعلية للدورات والكورسات المجانية",
+        "category": "Educational Platform",
+        "url": "https://www.tolzy.me/tolzy-learn"
+      },
+      {
+        "@type": "Product",
+        "name": "Tolzy Stack",
+        "description": "مكتبة لاستكشاف مشاريع GitHub مفتوحة المصدر",
+        "category": "Developer Tools",
+        "url": "https://www.tolzy.me/tolzy-stack"
+      }
+    ],
+    "audience": {
+      "@type": "Audience",
+      "audienceType": ["الطلاب", "المعلمون", "المطورون", "المصممون", "الباحثون", "مبدعو المحتوى"]
     }
   };
 };

@@ -16,12 +16,30 @@ interface TolzyProject {
 const TolzyProjectsPage: React.FC = () => {
   const projects: TolzyProject[] = [
     {
+      id: 'tolzy-tools',
+      name: 'Tolzy Tools',
+      description: 'المنصة الرئيسية - دليل شامل لأكثر من 400 أداة ذكاء اصطناعي مجانية ومدفوعة (ChatGPT, Gemini, Claude, Midjourney)',
+      url: '/tools',
+      icon: <Sparkles className="w-12 h-12" />,
+      color: 'purple',
+      status: 'live'
+    },
+    {
       id: 'tolzy-learn',
       name: 'Tolzy Learn',
-      description: 'منصة تعليمية تفاعلية بالذكاء الاصطناعي - دورات، تمارين، ومشاريع حقيقية',
+      description: 'منتج إضافي - منصة تعليمية تفاعلية بالذكاء الاصطناعي مع دورات مجانية في البرمجة والذكاء الاصطناعي',
       url: '/tolzy-learn',
       icon: <BookOpen className="w-12 h-12" />,
       color: 'green',
+      status: 'live'
+    },
+    {
+      id: 'tolzy-stack',
+      name: 'Tolzy Stack',
+      description: 'منتج إضافي - مكتبة متخصصة لاستكشاف مشاريع GitHub مفتوحة المصدر والتعلم من أفضل المطورين',
+      url: '/tolzy-stack',
+      icon: <Sparkles className="w-12 h-12" />,
+      color: 'indigo',
       status: 'live'
     }
   ];
@@ -39,9 +57,9 @@ const TolzyProjectsPage: React.FC = () => {
   return (
     <PageLayout>
       <SEO
-        title="مشاريع Tolzy - منصات ومواقع متكاملة"
-        description="اكتشف جميع مشاريع Tolzy: Tolzy Stack للمشاريع مفتوحة المصدر، Tolzy Tools لأدوات الذكاء الاصطناعي، وأكثر. منصات متكاملة للمطورين والمتعلمين."
-        keywords="tolzy projects, tolzy stack, مشاريع tolzy, مواقع tolzy, منصات تعليمية, أدوات المطورين"
+        title="منتجات Tolzy - المنصة الرئيسية والمنتجات الإضافية"
+        description="اكتشف منتجات Tolzy: المنصة الرئيسية (دليل 400+ أداة ذكاء اصطناعي)، Tolzy Learn (كورسات برمجة مجانية)، و Tolzy Stack (مشاريع GitHub مفتوحة المصدر). جميع المنتجات متاحة الآن من إنتاج Tolzy!"
+        keywords="tolzy products, منتجات tolzy, tolzy tools, tolzy learn, tolzy stack, أدوات الذكاء الاصطناعي, كورسات برمجة مجانية, مشاريع مفتوحة المصدر, منصات تعليمية عربية, أدوات المطورين"
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

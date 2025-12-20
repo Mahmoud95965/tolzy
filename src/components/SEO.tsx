@@ -21,8 +21,8 @@ const getCurrentDomain = () => {
 
 export default function SEO({
   title = 'Tolzy - أفضل أدوات الذكاء الاصطناعي والتعليمية المجانية 2025',
-  description = 'اكتشف أكثر من 150+ أداة ذكاء اصطناعي مجانية ومدفوعة. ChatGPT, Google Gemini, Midjourney, DALL-E, Claude, Copilot. أدوات تعليمية للطلاب والمعلمين. أدوات الكتابة، التصميم، البرمجة، البحث العلمي. ابدأ مجاناً!',
-  keywords = 'tolzy, أدوات ذكاء اصطناعي, AI tools, ChatGPT, Google Gemini, Claude AI, Midjourney, DALL-E, Stable Diffusion, أدوات تعليمية مجانية, أدوات للطلاب, أدوات البرمجة, GitHub Copilot, تصميم بالذكاء الاصطناعي, Canva AI, أدوات الكتابة, Grammarly, QuillBot, Jasper AI, Copy.ai, أدوات البحث العلمي, Consensus, Elicit, أدوات الإنتاجية, Notion AI, Todoist, ClickUp, تعلم اللغات, Duolingo, Babbel, Khan Academy, Coursera, edX, أدوات مجانية, free AI tools, educational tools, learning tools, productivity tools, AI للطلاب, AI للمعلمين, أدوات الذكاء الاصطناعي العربية, أفضل أدوات AI 2025',
+  description = 'Tolzy - المنصة الرئيسية لأدوات الذكاء الاصطناعي. اكتشف دليلنا الشامل لأكثر من 400 أداة (ChatGPT, Gemini, Claude, Midjourney). منتجات إضافية: Tolzy Learn (كورسات تعليمية مجانية)، Tolzy Stack (مشاريع GitHub مفتوحة المصدر). محتوى عربي عالي الجودة من إنتاج Tolzy. ابدأ مجاناً!',
+  keywords = 'tolzy, تولزي, Tolzy Tools, Tolzy Learn, Tolzy Stack, منصة تولزي, أدوات ذكاء اصطناعي, AI tools, ChatGPT, Google Gemini, Claude AI, Midjourney, DALL-E, Stable Diffusion, أدوات تعليمية مجانية, كورسات برمجة, مشاريع GitHub, أدوات للطلاب, أدوات البرمجة, GitHub Copilot, تصميم بالذكاء الاصطناعي, Canva AI, أدوات الكتابة, Grammarly, QuillBot, Jasper AI, Copy.ai, أدوات البحث العلمي, Consensus, Elicit, أدوات الإنتاجية, Notion AI, تعلم اللغات, Duolingo, Khan Academy, Coursera, أدوات مجانية, free AI tools, educational tools, learning tools, productivity tools, AI للطلاب, AI للمعلمين, أدوات الذكاء الاصطناعي العربية, أفضل أدوات AI 2025, منصات تعليمية عربية',
   image = '/src/Zakerly.png',
   url = '',
   type = 'website',
@@ -31,15 +31,15 @@ export default function SEO({
 }: SEOProps) {
   const currentDomain = getCurrentDomain();
   const siteName = 'Tolzy';
-  
+
   // Build full title with site name
-  const fullTitle = title.includes('Tolzy') 
-    ? title 
+  const fullTitle = title.includes('Tolzy')
+    ? title
     : `${title} | ${siteName}`;
-  
+
   // Build full URL
   const fullUrl = url.startsWith('http') ? url : `${currentDomain}${url}`;
-  
+
   // Build full image URL
   const fullImage = image.startsWith('http') ? image : `${currentDomain}${image}`;
 
@@ -50,7 +50,7 @@ export default function SEO({
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
-      
+
       {/* Robots Meta Tag */}
       {noindex ? (
         <meta name="robots" content="noindex, nofollow" />
@@ -59,14 +59,14 @@ export default function SEO({
       )}
       <meta name="googlebot" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <meta name="bingbot" content={noindex ? "noindex, nofollow" : "index, follow"} />
-      
+
       {/* Canonical URL */}
       <link rel="canonical" href={fullUrl} />
-      
+
       {/* Alternate URLs */}
       <link rel="alternate" href={fullUrl} hrefLang="ar" />
       <link rel="alternate" href={fullUrl} hrefLang="x-default" />
-      
+
       {/* Open Graph / Facebook Meta Tags */}
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={siteName} />
@@ -80,7 +80,7 @@ export default function SEO({
       <meta property="og:image:alt" content={title} />
       <meta property="og:locale" content="ar_AR" />
       <meta property="og:locale:alternate" content="en_US" />
-      
+
       {/* Twitter Card Meta Tags */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@tolzytools" />
@@ -89,13 +89,13 @@ export default function SEO({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullImage} />
       <meta name="twitter:image:alt" content={title} />
-      
+
       {/* Additional SEO Tags */}
       <meta name="author" content={siteName} />
       <meta name="language" content="Arabic" />
       <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
       <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-      
+
       {/* Structured Data */}
       {structuredData && (
         <script type="application/ld+json">

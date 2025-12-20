@@ -34,9 +34,9 @@ const HomePage: React.FC = () => {
   return (
     <PageLayout>
       <SEO
-        title="Tolzy - المنصة العربية الأولى لأدوات الذكاء الاصطناعي والتعليم | +200 أداة وكورس مجاني"
-        description="اكتشف أقوى منصة عربية لأدوات الذكاء الاصطناعي. دليل شامل لأكثر من 200 أداة (ChatGPT, Gemini, Claude, Midjourney). كورسات تعليمية مجانية في البرمجة والذكاء الاصطناعي. أدوات للطلاب، الباحثين، المبرمجين، والمصممين. مقارنات حقيقية، تقييمات موثوقة، وتحديثات يومية. ابدأ رحلة التعلم والإنتاجية مع Tolzy الآن مجاناً!"
-        keywords="tolzy, تولزي, أدوات ذكاء اصطناعي, AI tools 2025, ChatGPT 4, Google Gemini Pro, Claude 3 Opus, Midjourney v6, DALL-E 3, Stable Diffusion, أدوات تعليمية مجانية, كورسات برمجة مجانية, تعلم الذكاء الاصطناعي, أدوات البحث العلمي, Consensus, Elicit, SciSpace, أدوات الكتابة, Jasper, Copy.ai, Grammarly, أدوات التصميم, Canva AI, Leonardo.ai, أدوات البرمجة, GitHub Copilot, Cursor IDE, أدوات الفيديو, Runway, HeyGen, Sora, أدوات الإنتاجية, Notion AI, أدوات الطلاب, حل الواجبات بالذكاء الاصطناعي, تلخيص الملفات, تحويل النص إلى كلام, تحويل الكلام إلى نص, أفضل مواقع الذكاء الاصطناعي, دليل أدوات AI, تطبيقات ذكاء اصطناعي للأندرويد والايفون, تعلم الآلة, علم البيانات, هندسة الأوامر, Prompt Engineering, فري لانسر, العمل الحر, الربح من الذكاء الاصطناعي"
+        title="Tolzy - المنصة الرئيسية لأدوات الذكاء الاصطناعي | 400+ أداة وكورس مجاني"
+        description="Tolzy - المنصة الرئيسية لدليل أدوات الذكاء الاصطناعي. اكتشف أكثر من 400 أداة احترافية (ChatGPT, Gemini, Claude, Midjourney). منتجات Tolzy الإضافية: Tolzy Learn (كورسات برمجة مجانية)، Tolzy Stack (مشاريع GitHub مفتوحة المصدر). أدوات للطلاب، الباحثين، المبرمجين، والمصممين. من إنتاج Tolzy. ابدأ مجاناً!"
+        keywords="tolzy, تولزي, tolzy tools, tolzy learn, tolzy stack, منصة تولزي, أدوات ذكاء اصطناعي, AI tools 2025, ChatGPT 4, Google Gemini Pro, Claude 3 Opus, Midjourney v6, DALL-E 3, كورسات برمجة مجانية, تعلم الذكاء الاصطناعي, مشاريع GitHub, أدوات البحث العلمي, Consensus, Elicit, أدوات الكتابة, Jasper, Copy.ai, Grammarly, أدوات التصميم, Canva AI, Leonardo.ai, أدوات البرمجة, GitHub Copilot, Cursor IDE, أدوات الفيديو, Runway, HeyGen, أدوات الإنتاجية, Notion AI, أدوات الطلاب, حل الواجبات بالذكاء الاصطناعي, تلخيص الملفات, أفضل مواقع الذكاء الاصطناعي, دليل أدوات AI, تطبيقات ذكاء اصطناعي, Prompt Engineering, فري لانسر, العمل الحر, الربح من الذكاء الاصطناعي, منصات تعليمية عربية, تعلم البرمجة, دورات تفاعلية"
         url="/"
       />
       <Hero />
