@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">          <Link to="/" className="flex-shrink-0 flex items-center group">
           <div className="relative">
             <img
-              src="/image/tools/Hero.png"
+              src="/image/tools/Logo.png"
               alt="Tolzy Logo"
               className="h-10 w-auto transition-all duration-300 group-hover:scale-110"
               onError={(e) => {
