@@ -11,7 +11,15 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
 
+# Next.js
+.next
+out
+next-env.d.ts
+
+# Vite (legacy)
+vite.config.ts.timestamp-*
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
