@@ -119,8 +119,10 @@ export default function RootLayout({
     return (
         <html lang="ar" dir="rtl" suppressHydrationWarning>
             <head>
-                <link rel="icon" href="/Logo.png" />
-                <link rel="apple-touch-icon" href="/Logo.png" />
+                <link rel="icon" type="image/png" sizes="32x32" href="/image/tools/Logo.png" />
+                <link rel="icon" type="image/png" sizes="16x16" href="/image/tools/Logo.png" />
+                <link rel="apple-touch-icon" sizes="180x180" href="/image/tools/Logo.png" />
+                <link rel="shortcut icon" href="/image/tools/Logo.png" />
                 <meta name="theme-color" content="#4F46E5" />
                 <script
                     type="application/ld+json"
