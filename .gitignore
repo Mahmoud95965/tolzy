@@ -29,5 +29,6 @@ vite.config.ts.timestamp-*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
 .env
+.env.local
+.env.example
