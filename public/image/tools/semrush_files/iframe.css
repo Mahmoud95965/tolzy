@@ -1,0 +1,52 @@
+/* Стилі для обгортки iframe */
+.iframe-wrapper {
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 20px;
+    /* Відступ між елементами, якщо їх декілька */
+}
+
+/* Стилі для iframe */
+.iframe-wrapper iframe {
+    display: block;
+    border: 0;
+}
+
+/* Стилі для накладеного елемента */
+.iframe-overlay {
+    position: absolute;
+    top: 0;
+    /* left: 0; */
+    /* width: 100%; */
+    /* height: 100%; */
+    background: rgba(0, 0, 0, 0.1);
+    /* Напівпрозорий фон для візуального ефекту */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 50px;
+    pointer-events: auto;
+    /* Забезпечує, що елемент ловить кліки */
+    transition: background 0.3s;
+}
+
+/* Додавання символу (опціонально) */
+.iframe-overlay::before {
+    pointer-events: none;
+    /* Символ не ловить кліки */
+}
+
+/* Ефект при наведенні */
+.iframe-overlay:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Опціонально: Анімація символу */
+.iframe-overlay::before {
+    transition: transform 0.3s;
+}
+
+.iframe-overlay:hover::before {
+    transform: scale(1.2);
+}

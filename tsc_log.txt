@@ -1,0 +1,45 @@
+﻿src/components/learn/SkillTreeSidebar.tsx(3,10): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/components/learn/SkillTreeSidebar.tsx(3,24): error TS6133: 'ChevronDown' is declared but its value is never read.
+src/components/notifications/NotificationsList.tsx(5,10): error TS6133: 'Bell' is declared but its value is never read.
+src/components/notifications/NotificationsList.tsx(22,10): error TS6133: 'hasIndex' is declared but its value is never read.
+src/components/tools/SavedTools.tsx(2,10): error TS2305: Module '"../../types"' has no exported member 'Tool'.
+src/components/tools/ShareToolModal.tsx(3,10): error TS2305: Module '"../../types"' has no exported member 'Tool'.
+src/components/tools/ToolFilters.tsx(4,10): error TS2305: Module '"../../types"' has no exported member 'FilterOptions'.
+src/components/tools/ToolFilters.tsx(35,16): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/tools/ToolFilters.tsx(39,16): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/components/tools/ToolFilters.tsx(43,16): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/data/learningPaths.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/data/learningPaths.tsx(4,5): error TS6133: 'Code' is declared but its value is never read.
+src/data/learningPaths.tsx(4,11): error TS6133: 'Database' is declared but its value is never read.
+src/data/learningPaths.tsx(4,21): error TS6133: 'Terminal' is declared but its value is never read.
+src/data/learningPaths.tsx(4,31): error TS6133: 'Cpu' is declared but its value is never read.
+src/data/learningPaths.tsx(4,36): error TS6133: 'Lock' is declared but its value is never read.
+src/data/learningPaths.tsx(4,42): error TS6133: 'Cloud' is declared but its value is never read.
+src/data/learningPaths.tsx(5,5): error TS6133: 'Smartphone' is declared but its value is never read.
+src/data/learningPaths.tsx(5,17): error TS6133: 'PenTool' is declared but its value is never read.
+src/data/learningPaths.tsx(5,26): error TS6133: 'GitBranch' is declared but its value is never read.
+src/data/learningPaths.tsx(5,37): error TS6133: 'Search' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(36,11): error TS6133: 'geminiDisabledUntil' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(37,20): error TS6133: 'geminiCooldownMs' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(38,11): error TS6133: 'isOpenAIKeyValid' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(95,11): error TS6133: 'shouldRefresh' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(145,14): error TS6133: 'userMessage' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(145,35): error TS6133: 'conversationHistory' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(153,17): error TS6133: 'generateOllamaResponse' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(194,17): error TS6133: 'generateOpenAIResponse' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(342,11): error TS6133: 'generateLocalResponse' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(435,38): error TS6133: 'query' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(488,42): error TS6133: 'query' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(532,32): error TS6133: 'query' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(598,11): error TS6133: 'generateErrorResponse' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(681,30): error TS6133: 'title' is declared but its value is never read.
+src/services/tolzy-ai.service.ts(681,45): error TS6133: 'description' is declared but its value is never read.
+src/services/tools.service.ts(1,44): error TS6133: 'setDoc' is declared but its value is never read.
+src/views/admin/TolzyLearnAdminPage.tsx(12,1): error TS6133: 'tolzyAI' is declared but its value is never read.
+src/views/admin/TolzyLearnAdminPage.tsx(92,25): error TS6133: 'setIsAnalyzing' is declared but its value is never read.
+src/views/AuthPage.tsx(59,9): error TS6133: 'handleMicrosoftSignIn' is declared but its value is never read.
+src/views/NewsDetailPage.tsx(8,110): error TS6133: 'MessageCircle' is declared but its value is never read.
+src/views/ProfilePage.tsx(17,30): error TS6133: 'loadingUserData' is declared but its value is never read.
+src/views/ProfilePage.tsx(22,10): error TS6133: 'displayName' is declared but its value is never read.
+src/views/TolzyCoursePlayerPage.tsx(78,19): error TS2552: Cannot find name 'navigate'. Did you mean 'navigator'?
+src/views/TolzyLearnPage.tsx(6,1): error TS6133: 'SEO' is declared but its value is never read.
