@@ -5,14 +5,18 @@ import { getNewsById, toggleLikeNews, incrementShareCount } from '../services/ne
 import type { NewsArticle } from '../types/index';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Clock, User, ArrowRight, Loader, Eye, MessageCircle } from 'lucide-react';
+import { Heart, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Clock, User, ArrowRight, Loader, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const NewsDetailPage: React.FC = () => {
+interface NewsDetailPageProps {
+  initialArticle?: NewsArticle | null;
+}
+
+const NewsDetailPage: React.FC<NewsDetailPageProps> = ({ initialArticle }) => {
   const params = useParams();
   const id = params?.id as string;
-  const [article, setArticle] = useState<NewsArticle | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [article, setArticle] = useState<NewsArticle | null>(initialArticle || null);
+  const [loading, setLoading] = useState(!initialArticle);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);

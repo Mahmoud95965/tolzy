@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getAllToolsFromFirebase } from '@/lib/firebase-admin';
+import { getAllToolsFromFirebase, getAllNewsFromFirebase, getAllCoursesFromFirebase } from '@/lib/firebase-admin';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://tolzy.me';
@@ -79,9 +79,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
         }));
 
-        console.log(`✅ Generated sitemap with ${staticPages.length} static pages and ${toolPages.length} tool pages`);
+        // Dynamic news pages
+        const news = await getAllNewsFromFirebase();
+        const newsPages: MetadataRoute.Sitemap = news.map((article: any) => ({
+            url: `${baseUrl}/news/${article.id}`,
+            lastModified: article.createdAt ? new Date(article.createdAt) : new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        }));
 
-        return [...staticPages, ...toolPages];
+        // Dynamic course pages
+        const courses = await getAllCoursesFromFirebase();
+        const coursePages: MetadataRoute.Sitemap = courses.map((course: any) => ({
+            url: `${baseUrl}/tolzy-learn/course/${course.id}`,
+            lastModified: course.updatedAt ? new Date(course.updatedAt) : new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        }));
+
+        console.log(`✅ Generated sitemap with ${staticPages.length} static pages, ${toolPages.length} tools, ${newsPages.length} news, and ${coursePages.length} courses`);
+
+        return [...staticPages, ...toolPages, ...newsPages, ...coursePages];
     } catch (error) {
         console.error('❌ Error generating dynamic sitemap:', error);
         // Return static pages even if dynamic generation fails

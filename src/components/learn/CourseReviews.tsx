@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../config/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { Star, User, MessageSquare, Send } from 'lucide-react';
+import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { Star, User, MessageSquare, Send, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface Review {
@@ -123,6 +123,22 @@ const CourseReviews: React.FC<CourseReviewsProps> = ({ courseId, onRatingUpdate 
             toast.error('حدث خطأ أثناء إرسال التقييم: ' + error.message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (reviewId: string) => {
+        if (!confirm('هل أنت متأكد من حذف هذا التعليق؟')) return;
+
+        try {
+            await deleteDoc(doc(db, 'reviews', reviewId));
+            setReviews(prev => prev.filter(r => r.id !== reviewId));
+            toast.success('تم حذف التعليق بنجاح');
+
+            // Note: We are not updating the aggregate rating here immediately as it requires server-side recalc or complex client-side math. 
+            // Ideally, the parent component should refetch or the Cloud Function handles aggregations properly.
+        } catch (error) {
+            console.error('Error deleting review:', error);
+            toast.error('حدث خطأ أثناء حذف التعليق');
         }
     };
 
@@ -253,6 +269,15 @@ const CourseReviews: React.FC<CourseReviewsProps> = ({ courseId, onRatingUpdate 
                                         {rev.comment}
                                     </p>
                                 </div>
+                                {user && user.uid === rev.userId && (
+                                    <button
+                                        onClick={() => handleDelete(rev.id)}
+                                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                        title="حذف التعليق"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))

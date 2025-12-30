@@ -1,13 +1,13 @@
-import { collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, limit, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Tool } from '../types/index';
 
 export const convertFirestoreDoc = (doc: QueryDocumentSnapshot<DocumentData>): Tool => {
   const data = doc.data();
-  
+
   // معالجة أسماء حقول مختلفة للصور
   let imageUrl = data.imageUrl || data.image || data.logo || data.icon || data.img || '';
-  
+
   // إصلاح المسارات النسبية للصور
   if (imageUrl && imageUrl.startsWith('public/')) {
     // تحويل public/image/tools/xxx.png إلى /image/tools/xxx.png
@@ -16,7 +16,7 @@ export const convertFirestoreDoc = (doc: QueryDocumentSnapshot<DocumentData>): T
     // إذا كان المسار نسبي بدون public، أضف /
     imageUrl = '/' + imageUrl;
   }
-  
+
   return {
     ...data,
     id: doc.id,
@@ -43,7 +43,7 @@ export const getFeaturedTools = async (maxTools: number = 4) => {
       orderBy('rating', 'desc'),
       limit(maxTools)
     );
-    
+
     const snapshot = await getDocs(q);
     return snapshot.docs.map(convertFirestoreDoc);
   } catch (error: unknown) {
@@ -61,7 +61,7 @@ export const getPopularTools = async (maxTools: number = 4) => {
       orderBy('rating', 'desc'),
       limit(maxTools)
     );
-    
+
     const snapshot = await getDocs(q);
     return snapshot.docs.map(convertFirestoreDoc);
   } catch (error: unknown) {
@@ -79,7 +79,7 @@ export const getNewTools = async (maxTools: number = 4) => {
       orderBy('submittedAt', 'desc'),
       limit(maxTools)
     );
-    
+
     const snapshot = await getDocs(q);
     return snapshot.docs.map(convertFirestoreDoc);
   } catch (error: unknown) {
@@ -93,11 +93,11 @@ export const getToolById = async (id: string) => {
     const normalizedId = id.toString().padStart(3, '0');
     const toolRef = doc(db, 'tools', normalizedId);
     const snapshot = await getDoc(toolRef);
-    
+
     if (!snapshot.exists()) {
       return null;
     }
-    
+
     return {
       ...snapshot.data(),
       id: snapshot.id

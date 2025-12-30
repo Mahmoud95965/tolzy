@@ -5,8 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import PageLayout from '../components/layout/PageLayout';
 import { LogIn, UserPlus, Mail, Lock, Eye, EyeOff, Sparkles, Shield, Zap } from 'lucide-react';
 import GoogleIcon from '../components/icons/GoogleIcon';
-import { auth, microsoftProvider } from '../config/firebase';
-import { signInWithPopup } from 'firebase/auth';
+// import { auth, microsoftProvider } from '../config/firebase';
+// import { signInWithPopup } from 'firebase/auth';
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -56,17 +56,7 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  const handleMicrosoftSignIn = async () => {
-    try {
-      setIsLoading(true);
-      await signInWithPopup(auth, microsoftProvider);
-      router.push('/');
-    } catch (error) {
-      console.error('Microsoft sign in error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   return (
     <PageLayout>

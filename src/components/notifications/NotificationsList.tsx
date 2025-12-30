@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, Unsubscribe, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, Check, AlertTriangle, Trash2, CheckCircle } from 'lucide-react';
+import { Check, AlertTriangle, Trash2, CheckCircle } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -19,7 +19,7 @@ const NotificationsList: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasIndex, setHasIndex] = useState(true);
+  // تم حذف سطر hasIndex من هنا
   const { user } = useAuth();
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -32,7 +32,6 @@ const NotificationsList: React.FC = () => {
     const setupNotifications = () => {
       const notificationsRef = collection(db, 'notifications');
       
-      // Try with index first
       const q = query(
         notificationsRef,
         where('userId', '==', user.email),
@@ -47,15 +46,13 @@ const NotificationsList: React.FC = () => {
           } as Notification));
           setNotifications(newNotifications);
           setLoading(false);
-          setHasIndex(true);
+          // تم حذف setHasIndex(true)
           setError(null);
         },
         (error) => {
           console.error('Error with indexed query:', error);
-          // Check if the error is about missing index
           if (error.message.includes('requires an index')) {
-            setHasIndex(false);
-            // Fall back to non-indexed query
+            // تم حذف setHasIndex(false)
             const basicQuery = query(
               notificationsRef,
               where('userId', '==', user.email)
@@ -67,7 +64,6 @@ const NotificationsList: React.FC = () => {
                   id: doc.id,
                   ...doc.data()
                 } as Notification))
-                // Sort on client side
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 
                 setNotifications(newNotifications);

@@ -1,8 +1,6 @@
-import React from 'react';
+
 import {
-    Globe, Layout, Server, Brain, Layers, Shield,
-    Code, Database, Terminal, Cpu, Lock, Cloud,
-    Smartphone, PenTool, GitBranch, Search
+    Globe, Layout, Server, Brain, Layers, Shield
 } from 'lucide-react';
 import { LearningPath } from '../types/learn';
 

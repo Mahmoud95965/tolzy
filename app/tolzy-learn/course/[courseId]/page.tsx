@@ -1,31 +1,52 @@
+
 import type { Metadata } from 'next';
 import TolzyCoursePlayerPage from '@/src/views/TolzyCoursePlayerPage';
+import { getAllCoursesFromFirebase, getCourseByIdFromFirebase } from '@/lib/firebase-admin';
 
 type Props = {
     params: Promise<{ courseId: string }>;
 };
 
+// Generate static paths for all courses - Critical for SEO!
+export async function generateStaticParams() {
+    try {
+        const courses = await getAllCoursesFromFirebase();
+
+        return courses.map((course: any) => ({
+            courseId: course.id,
+        }));
+    } catch (error) {
+        console.error('Error generating static params:', error);
+        return [];
+    }
+}
+
 // Generate comprehensive metadata for Tolzy Learn courses
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { courseId } = await params;
+    const course = await getCourseByIdFromFirebase(courseId);
 
-    const courseName = 'دورة برمجة شاملة';
-    const courseDescription = 'تعلم البرمجة من الصفر حتى الاحتراف مع Tolzy Learn - أفضل الكورسات المجانية بجودة عالية، شروحات بالعربية، ومشاريع عملية. ابدأ رحلتك في عالم البرمجة الآن!';
+    if (!course) {
+        return {
+            title: 'الكورس غير موجود - Tolzy Learn',
+        };
+    }
+
+    const courseName = course.title;
+    const courseDescription = course.description || 'تعلم مهارات جديدة مع Tolzy Learn';
+    const courseImage = course.thumbnail || 'https://tolzy.me/Logo.png';
 
     return {
-        title: `${courseName} - Tolzy Learn | كورسات برمجة مجانية عالية الجودة`,
+        title: `${courseName} - Tolzy Learn | كورسات مجانية`,
         description: courseDescription,
         keywords: [
             courseName,
-            'كورس برمجة مجاني',
-            'تعليم البرمجة بالعربي',
+            course.category || '',
+            ...(course.instructor ? [course.instructor] : []),
             'Tolzy Learn',
-            'دورة برمجة كاملة',
-            'تعلم البرمجة من الصفر',
-            'programming course Arabic',
-            'كورسات اونلاين مجانية',
-            'web development tutorial',
-            'دروس برمجة',
+            'كورس مجاني',
+            'تعليم البرمجة بالعربي',
+            'دورة شاملة',
         ],
         openGraph: {
             title: `${courseName} - Tolzy Learn`,
@@ -36,10 +57,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             siteName: 'Tolzy Learn',
             images: [
                 {
-                    url: 'https://tolzy.me/Logo.png',
+                    url: courseImage,
                     width: 1200,
                     height: 630,
-                    alt: 'Tolzy Learn - تعلم البرمجة مجاناً',
+                    alt: courseName,
                 },
             ],
         },
@@ -47,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             card: 'summary_large_image',
             title: `${courseName} - Tolzy Learn`,
             description: courseDescription,
-            images: ['https://tolzy.me/Logo.png'],
+            images: [courseImage],
         },
         alternates: {
             canonical: `https://tolzy.me/tolzy-learn/course/${courseId}`,
@@ -60,14 +81,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CoursePlayer({ params }: Props) {
-    await params;
+    const { courseId } = await params;
+    const course = await getCourseByIdFromFirebase(courseId);
 
     // Enhanced Course JSON-LD schema for Tolzy Learn
-    const courseSchema = {
+    const courseSchema = course ? {
         '@context': 'https://schema.org',
         '@type': 'Course',
-        'name': 'دورة برمجة شاملة - Tolzy Learn',
-        'description': 'كورس برمجة مجاني شامل من الصفر حتى الاحتراف. تعلم تطوير الويب، JavaScript، React، وأكثر مع مشاريع عملية',
+        'name': course.title,
+        'description': course.description,
         'provider': {
             '@type': 'Organization',
             'name': 'Tolzy',
@@ -78,39 +100,34 @@ export default async function CoursePlayer({ params }: Props) {
                 'https://facebook.com/tolzy'
             ]
         },
-        'educationalLevel': 'Beginner to Advanced',
+        'image': [course.thumbnail || 'https://tolzy.me/Logo.png'],
+        'educationalLevel': course.level, // beginner, intermediate, advanced
         'inLanguage': 'ar',
-        'isAccessibleForFree': true,
+        'isAccessibleForFree': course.price === 'free',
         'hasCourseInstance': {
             '@type': 'CourseInstance',
             'courseMode': 'online',
-            'courseWorkload': 'PT30H', // 30 hours
             'instructor': {
-                '@type': 'Organization',
-                'name': 'Tolzy'
+                '@type': 'Person', // Assuming instructor is a person, adjust if Organization
+                'name': course.instructor || 'Tolzy Team'
             }
         },
-        'teaches': [
-            'Web Development',
-            'JavaScript',
-            'React',
-            'Programming Fundamentals',
-            'Project Building'
-        ],
-        'audience': {
-            '@type': 'EducationalAudience',
-            'educationalRole': 'student'
-        },
-        'coursePrerequisites': 'لا توجد متطلبات مسبقة - مناسب للمبتدئين'
-    };
+        'aggregateRating': course.rating ? {
+            '@type': 'AggregateRating',
+            'ratingValue': course.rating,
+            'reviewCount': course.reviewsCount || 1 // Avoid 0 review count for valid schema
+        } : undefined,
+    } : null;
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
-            />
-            <TolzyCoursePlayerPage />
+            {courseSchema && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
+                />
+            )}
+            <TolzyCoursePlayerPage initialCourse={course} />
         </>
     );
 }

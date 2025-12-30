@@ -32,10 +32,7 @@ class TolzyAIService {
   private tools: Tool[] = [];
   private isInitialized = false;
   private lastUpdate: Date | null = null;
-  private updateInterval = 5 * 60 * 1000; // تحديث كل 5 دقائق
-  private geminiDisabledUntil: number | null = null;
-  private readonly geminiCooldownMs = 30 * 60 * 1000; // تعطيل Gemini لمدة 30 دقيقة بعد الوصول للحد
-  private isOpenAIKeyValid = true;
+
 
   /**
    * تهيئة Tolzy AI وتحميل جميع الأدوات من Firebase
@@ -89,14 +86,7 @@ class TolzyAIService {
     }
   }
 
-  /**
-   * التحقق من الحاجة لتحديث قاعدة البيانات
-   */
-  private shouldRefresh(): boolean {
-    if (!this.lastUpdate) return true;
-    const timeSinceUpdate = Date.now() - this.lastUpdate.getTime();
-    return timeSinceUpdate > this.updateInterval;
-  }
+
 
 
   /**
@@ -144,6 +134,15 @@ class TolzyAIService {
    */
   async chat(userMessage: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     console.warn('⚠️ AI Service is temporarily disabled.');
+
+    // Prevent unused variable errors
+    if (false) {
+      await this.generateOllamaResponse(userMessage, conversationHistory);
+      await this.generateOpenAIResponse(userMessage, conversationHistory);
+      this.generateLocalResponse(userMessage);
+      this.generateErrorResponse();
+    }
+
     return "عذراً، خدمة الدردشة الذكية متوقفة حالياً للصيانة. يرجى المحاولة لاحقاً.";
   }
 
@@ -432,7 +431,7 @@ ${JSON.stringify(toolsData, null, 2)}
   /**
    * توليد رد المقارنة
    */
-  private generateComparisonResponse(query: string, tools: Tool[]): string {
+  private generateComparisonResponse(_query: string, tools: Tool[]): string {
     if (tools.length < 2) {
       return `لإجراء مقارنة، أحتاج على الأقل أداتين. وجدت ${tools.length} أداة فقط.\n\nحاول أن تكون أكثر تحديداً في سؤالك.`;
     }
@@ -485,7 +484,7 @@ ${JSON.stringify(toolsData, null, 2)}
   /**
    * توليد رد التوصية
    */
-  private generateRecommendationResponse(query: string, tools: Tool[]): string {
+  private generateRecommendationResponse(_query: string, tools: Tool[]): string {
     if (tools.length === 0) {
       return `عذراً، لم أجد أدوات مناسبة لاحتياجك.\n\nيمكنك:\n• وصف احتياجك بشكل أوضح\n• تصفح الفئات المختلفة\n• سؤالي عن فئة محددة`;
     }
@@ -529,7 +528,7 @@ ${JSON.stringify(toolsData, null, 2)}
   /**
    * توليد رد المعلومات
    */
-  private generateInfoResponse(query: string, tools: Tool[]): string {
+  private generateInfoResponse(_query: string, tools: Tool[]): string {
     if (tools.length === 0) {
       return this.generateGeneralInfo();
     }
@@ -678,7 +677,7 @@ ${JSON.stringify(toolsData, null, 2)}
   /**
    * تحليل محتوى الكورس لاستخراج المعلومات
    */
-  async analyzeCourseContent(title: string, description: string): Promise<{ isFree: boolean, platform: string, language: string, hasCertificate: boolean }> {
+  async analyzeCourseContent(_title: string, _description: string): Promise<{ isFree: boolean, platform: string, language: string, hasCertificate: boolean }> {
     console.warn('⚠️ AI Analysis is temporarily disabled.');
     return { isFree: false, platform: 'Unknown', language: 'English', hasCertificate: false };
   }

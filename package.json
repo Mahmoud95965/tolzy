@@ -13,7 +13,9 @@
     "lint": "next lint",
     "server": "node server/index.js",
     "update-tools": "node ./src/scripts/updateTools.cjs",
-    "add-tags": "node ./src/scripts/addTags.mjs"
+    "add-tags": "node ./src/scripts/addTags.mjs",
+    "deploy-rules": "firebase deploy --only firestore:rules",
+    "deploy-indexes": "firebase deploy --only firestore:indexes"
   },
   "dependencies": {
     "@google/genai": "^1.25.0",

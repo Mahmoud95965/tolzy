@@ -18,6 +18,7 @@ import {
 import SearchAutocomplete from './SearchAutocomplete';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { useUserData } from '../../hooks/useUserData';
 import UserProfile from '../auth/UserProfile';
 
 const Navbar: React.FC = () => {
@@ -28,6 +29,7 @@ const Navbar: React.FC = () => {
   const { t } = useTranslation();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { user } = useAuth();
+  const { userData } = useUserData();
 
   // Detect scroll for glassmorphism effect
   useEffect(() => {
@@ -186,6 +188,18 @@ const Navbar: React.FC = () => {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-slate-700 to-slate-600 dark:from-slate-400 dark:to-slate-500 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>
+
+              {(userData?.role === 'admin' || user?.email === 'mahmoud@gmail.com') && (
+                <Link
+                  href="/admin"
+                  className="group relative text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 inline-flex items-center px-3 py-2 text-sm font-bold transition-all duration-300"
+                >
+                  <span className="relative">
+                    لوحة التحكم
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-indigo-500 group-hover:w-full transition-all duration-300"></span>
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -280,6 +294,14 @@ const Navbar: React.FC = () => {
               >
                 {t('nav.about')}
               </Link>
+              {(userData?.role === 'admin' || user?.email === 'mahmoud@gmail.com') && (
+                <Link
+                  href="/admin"
+                  className="block px-3 py-2 text-base font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                >
+                  لوحة التحكم
+                </Link>
+              )}
               <button
                 onClick={toggleDarkMode}
                 className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-md transition-colors"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
@@ -7,14 +8,19 @@ import {
     LayoutDashboard, BookOpen, BarChart2, Settings, Search, Bell,
     Plus, Filter, Grid, List, Edit2, Trash2,
     ExternalLink, RefreshCw, X, UploadCloud,
-    Users, Globe, Star
+    Users, Globe, Star, FileText, Image as ImageIcon
 } from 'lucide-react';
-import { tolzyAI } from '../../services/tolzy-ai.service';
+import type { NewsArticle } from '../../types/index';
+import { publishNewsArticle, listAllNews, updateNews, deleteNews } from '../../services/news.service';
+
 
 // --- Components ---
 
-const SidebarItem = ({ icon: Icon, label, active = false }: { icon: any, label: string, active?: boolean }) => (
-    <button className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
+const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) => (
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+    >
         <Icon className="w-5 h-5" />
         <span>{label}</span>
     </button>
@@ -49,7 +55,79 @@ const TolzyLearnAdminPage: React.FC = () => {
 
     useEffect(() => {
         fetchCourses();
+        fetchNews();
     }, []);
+
+    // News State
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get('tab') === 'news' ? 'news' : 'courses';
+    const [news, setNews] = useState<NewsArticle[]>([]);
+    const [activeTab, setActiveTab] = useState<'courses' | 'news'>(initialTab);
+    const [currentNews, setCurrentNews] = useState<Partial<NewsArticle>>({});
+    const [isNewsDrawerOpen, setIsNewsDrawerOpen] = useState(false);
+
+    const fetchNews = async () => {
+        try {
+            const fetchedNews = await listAllNews();
+            setNews(fetchedNews);
+        } catch (error) {
+            console.error('Error fetching news:', error);
+        }
+    };
+
+    const handleNewsEditClick = (article: NewsArticle) => {
+        setCurrentNews(article);
+        setIsNewsDrawerOpen(true);
+    };
+
+    const handleCreateNewsClick = () => {
+        setCurrentNews({
+            title: '',
+            content: '',
+            coverImageUrl: '',
+            tags: [],
+            status: 'published'
+        });
+        setIsNewsDrawerOpen(true);
+    };
+
+    const handleSaveNews = async () => {
+        if (!currentNews.title || !currentNews.content) return;
+        setIsSaving(true);
+        try {
+            if (currentNews.id) {
+                await updateNews(currentNews.id, currentNews);
+            } else {
+                await publishNewsArticle({
+                    title: currentNews.title,
+                    content: currentNews.content,
+                    coverImageUrl: currentNews.coverImageUrl,
+                    tags: currentNews.tags,
+                    authorId: user?.uid || 'admin',
+                    authorEmail: user?.email || 'admin@tolzy.com',
+                    status: 'published'
+                });
+            }
+            setIsNewsDrawerOpen(false);
+            fetchNews();
+        } catch (error) {
+            console.error('Error saving news:', error);
+            alert('Failed to save news article');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteNews = async (id: string) => {
+        if (window.confirm('Delete this news article?')) {
+            try {
+                await deleteNews(id);
+                fetchNews();
+            } catch (error) {
+                console.error('Error deleting news:', error);
+            }
+        }
+    };
 
     const fetchCourses = async () => {
         try {
@@ -89,7 +167,7 @@ const TolzyLearnAdminPage: React.FC = () => {
 
     // Fetching state
     const [isFetching, setIsFetching] = useState(false);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
     const handleFetchCourse = async () => {
         if (!currentCourse.sourceUrl) {
@@ -208,7 +286,18 @@ const TolzyLearnAdminPage: React.FC = () => {
 
                 <nav className="flex-1 p-4 space-y-1">
                     <SidebarItem icon={LayoutDashboard} label="لوحة التحكم" />
-                    <SidebarItem icon={BookOpen} label="الدورات" active />
+                    <SidebarItem
+                        icon={BookOpen}
+                        label="الدورات"
+                        active={activeTab === 'courses'}
+                        onClick={() => setActiveTab('courses')}
+                    />
+                    <SidebarItem
+                        icon={FileText}
+                        label="الأخبار"
+                        active={activeTab === 'news'}
+                        onClick={() => setActiveTab('news')}
+                    />
                     <SidebarItem icon={BarChart2} label="التحليلات" />
                     <SidebarItem icon={Settings} label="الإعدادات" />
                 </nav>
@@ -230,14 +319,16 @@ const TolzyLearnAdminPage: React.FC = () => {
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Top Bar */}
                 <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-gray-900">إدارة الدورات</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {activeTab === 'courses' ? 'إدارة الدورات' : 'إدارة الأخبار'}
+                    </h1>
 
                     <div className="flex items-center gap-4">
                         <div className="relative">
                             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="بحث عن دورات..."
+                                placeholder={activeTab === 'courses' ? "بحث عن دورات..." : "بحث عن أخبار..."}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pr-10 pl-4 py-2 rounded-lg border border-gray-200 text-sm w-64 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
@@ -248,11 +339,11 @@ const TolzyLearnAdminPage: React.FC = () => {
                             <span className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
                         <button
-                            onClick={handleCreateClick}
+                            onClick={activeTab === 'courses' ? handleCreateClick : handleCreateNewsClick}
                             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            إضافة دورة جديدة
+                            {activeTab === 'courses' ? 'إضافة دورة جديدة' : 'إضافة خبر جديد'}
                         </button>
                     </div>
                 </header>
@@ -291,104 +382,188 @@ const TolzyLearnAdminPage: React.FC = () => {
                         <div className="flex justify-center py-20">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                         </div>
-                    ) : viewMode === 'table' ? (
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                            <table className="w-full text-right text-sm">
-                                <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
-                                    <tr>
-                                        <th className="px-6 py-4 w-12">
-                                            <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                                        </th>
-                                        <th className="px-6 py-4">الدورة</th>
-                                        <th className="px-6 py-4">المزود</th>
-                                        <th className="px-6 py-4">الحالة</th>
-                                        <th className="px-6 py-4">الإحصائيات</th>
-                                        <th className="px-6 py-4">آخر تحديث</th>
-                                        <th className="px-6 py-4 text-left">إجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {filteredCourses.map((course) => (
-                                        <tr key={course.id} className="hover:bg-gray-50/50 transition-colors group">
-                                            <td className="px-6 py-4">
+                    ) : activeTab === 'courses' ? (
+                        viewMode === 'table' ? (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                <table className="w-full text-right text-sm">
+                                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
+                                        <tr>
+                                            <th className="px-6 py-4 w-12">
                                                 <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
-                                                        {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-900 line-clamp-1">{course.title}</p>
-                                                        <p className="text-xs text-gray-500">{course.category || 'غير مصنف'}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    {course.sourceUrl ? <Globe className="w-4 h-4 text-gray-400" /> : <BookOpen className="w-4 h-4 text-indigo-400" />}
-                                                    <span className="text-gray-600">{course.platform || 'تولزي'}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <StatusBadge status={course.isPublished ? 'active' : 'draft'} />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4 text-gray-500">
-                                                    <div className="flex items-center gap-1">
-                                                        <Users className="w-4 h-4" />
-                                                        <span>{course.studentsCount || 0}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                                        <span>{course.rating || 0}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500">
-                                                {new Date(course.updatedAt || Date.now()).toLocaleDateString('ar-EG')}
-                                            </td>
-                                            <td className="px-6 py-4 text-left">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleEditClick(course)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(course.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            </th>
+                                            <th className="px-6 py-4">الدورة</th>
+                                            <th className="px-6 py-4">المزود</th>
+                                            <th className="px-6 py-4">الحالة</th>
+                                            <th className="px-6 py-4">الإحصائيات</th>
+                                            <th className="px-6 py-4">آخر تحديث</th>
+                                            <th className="px-6 py-4 text-left">إجراءات</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {filteredCourses.map((course) => (
+                                            <tr key={course.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                <td className="px-6 py-4">
+                                                    <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+                                                            {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900 line-clamp-1">{course.title}</p>
+                                                            <p className="text-xs text-gray-500">{course.category || 'غير مصنف'}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        {course.sourceUrl ? <Globe className="w-4 h-4 text-gray-400" /> : <BookOpen className="w-4 h-4 text-indigo-400" />}
+                                                        <span className="text-gray-600">{course.platform || 'تولزي'}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <StatusBadge status={course.isPublished ? 'active' : 'draft'} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-4 text-gray-500">
+                                                        <div className="flex items-center gap-1">
+                                                            <Users className="w-4 h-4" />
+                                                            <span>{course.studentsCount || 0}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                                            <span>{course.rating || 0}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-500">
+                                                    {new Date(course.updatedAt || Date.now()).toLocaleDateString('ar-EG')}
+                                                </td>
+                                                <td className="px-6 py-4 text-left">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => handleEditClick(course)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(course.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {filteredCourses.map((course) => (
+                                    <div key={course.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                                        <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                                            {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <button onClick={() => handleEditClick(course)} className="p-2 bg-white rounded-full text-gray-900 hover:text-indigo-600 transition-colors">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 flex-1 flex flex-col">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <StatusBadge status={course.isPublished ? 'active' : 'draft'} />
+                                                <span className="text-xs text-gray-500">{course.platform}</span>
+                                            </div>
+                                            <h3 className="font-bold text-gray-900 line-clamp-2 mb-1 flex-1">{course.title}</h3>
+                                            <div className="flex items-center gap-4 text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
+                                                <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {course.studentsCount || 0}</span>
+                                                <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-current" /> {course.rating || 0}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {filteredCourses.map((course) => (
-                                <div key={course.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
-                                    <div className="aspect-video bg-gray-100 relative overflow-hidden">
-                                        {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                            <button onClick={() => handleEditClick(course)} className="p-2 bg-white rounded-full text-gray-900 hover:text-indigo-600 transition-colors">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
+                        // --- News View ---
+                        viewMode === 'table' ? (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                <table className="w-full text-right text-sm">
+                                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
+                                        <tr>
+                                            <th className="px-6 py-4">الخبر</th>
+                                            <th className="px-6 py-4">المؤلف</th>
+                                            <th className="px-6 py-4">الحالة</th>
+                                            <th className="px-6 py-4">تاريخ النشر</th>
+                                            <th className="px-6 py-4 text-left">إجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {news.map((item) => (
+                                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+                                                            {item.coverImageUrl ? (
+                                                                <img src={item.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                                    <ImageIcon className="w-5 h-5" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className="font-medium text-gray-900 line-clamp-1">{item.title}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-600">{item.authorEmail || 'Unknown'}</td>
+                                                <td className="px-6 py-4">
+                                                    <StatusBadge status={item.status || 'published'} />
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-500">
+                                                    {new Date(item.createdAt).toLocaleDateString('ar-EG')}
+                                                </td>
+                                                <td className="px-6 py-4 text-left">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => handleNewsEditClick(item)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteNews(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {news.map((item) => (
+                                    <div key={item.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                                        <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                                            {item.coverImageUrl ? (
+                                                <img src={item.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                    <ImageIcon className="w-8 h-8" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <button onClick={() => handleNewsEditClick(item)} className="p-2 bg-white rounded-full text-gray-900 hover:text-indigo-600 transition-colors">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 flex-1 flex flex-col">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <StatusBadge status={item.status || 'published'} />
+                                                <span className="text-xs text-gray-500">{new Date(item.createdAt).toLocaleDateString('ar-EG')}</span>
+                                            </div>
+                                            <h3 className="font-bold text-gray-900 line-clamp-2 mb-1 flex-1">{item.title}</h3>
                                         </div>
                                     </div>
-                                    <div className="p-4 flex-1 flex flex-col">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <StatusBadge status={course.isPublished ? 'active' : 'draft'} />
-                                            <span className="text-xs text-gray-500">{course.platform}</span>
-                                        </div>
-                                        <h3 className="font-bold text-gray-900 line-clamp-2 mb-1 flex-1">{course.title}</h3>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
-                                            <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {course.studentsCount || 0}</span>
-                                            <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-current" /> {course.rating || 0}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )
                     )}
                 </div>
             </main>
@@ -424,10 +599,10 @@ const TolzyLearnAdminPage: React.FC = () => {
                                     />
                                     <button
                                         onClick={handleFetchCourse}
-                                        disabled={isFetching || isAnalyzing || !currentCourse.sourceUrl}
+                                        disabled={isFetching || !currentCourse.sourceUrl}
                                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2 font-medium shadow-sm"
                                     >
-                                        {(isFetching || isAnalyzing) ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                                        {isFetching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                                         جلب البيانات
                                     </button>
                                 </div>
@@ -478,6 +653,7 @@ const TolzyLearnAdminPage: React.FC = () => {
                                             />
                                         </div>
                                     </div>
+
                                 </div>
                             </section>
 
@@ -645,6 +821,112 @@ const TolzyLearnAdminPage: React.FC = () => {
                             >
                                 {isSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
                                 حفظ التغييرات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* News Edit Drawer */}
+            {isNewsDrawerOpen && (
+                <div className="fixed inset-0 z-50 flex justify-start">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsNewsDrawerOpen(false)} />
+                    <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+                        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                            <h2 className="text-lg font-bold text-gray-900">
+                                {currentNews.id ? 'تعديل الخبر' : 'خبر جديد'}
+                            </h2>
+                            <button onClick={() => setIsNewsDrawerOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                            {/* Basic Info */}
+                            <section className="space-y-4">
+                                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">تفاصيل الخبر</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+                                        <input
+                                            type="text"
+                                            value={currentNews.title || ''}
+                                            onChange={e => setCurrentNews({ ...currentNews, title: e.target.value })}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                            placeholder="عنوان الخبر..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">المحتوى</label>
+                                        <textarea
+                                            rows={12}
+                                            value={currentNews.content || ''}
+                                            onChange={e => setCurrentNews({ ...currentNews, content: e.target.value })}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono text-sm"
+                                            placeholder="اكتب محتوى الخبر هنا..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">صورة الغلاف (رابط)</label>
+                                        <input
+                                            type="text"
+                                            value={currentNews.coverImageUrl || ''}
+                                            onChange={e => setCurrentNews({ ...currentNews, coverImageUrl: e.target.value })}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                            placeholder="https://example.com/image.jpg"
+                                        />
+                                        {currentNews.coverImageUrl && (
+                                            <div className="mt-2 h-40 w-full rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                                                <img src={currentNews.coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Metadata */}
+                            <section className="space-y-4">
+                                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">الإعدادات</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
+                                        <select
+                                            value={currentNews.status || 'published'}
+                                            onChange={e => setCurrentNews({ ...currentNews, status: e.target.value as any })}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                        >
+                                            <option value="published">منشور</option>
+                                            <option value="draft">مسودة</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">الوسوم (مفصولة بفاصلة)</label>
+                                        <input
+                                            type="text"
+                                            value={currentNews.tags?.join(', ') || ''}
+                                            onChange={e => setCurrentNews({ ...currentNews, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                            placeholder="أخبار, تكنولوجيا, تحديث"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsNewsDrawerOpen(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleSaveNews}
+                                disabled={isSaving}
+                                className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
+                                حفظ الخبر
                             </button>
                         </div>
                     </div>

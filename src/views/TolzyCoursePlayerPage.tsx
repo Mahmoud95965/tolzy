@@ -18,12 +18,16 @@ import axios from 'axios';
 
 import SEO from '../components/SEO';
 
-const TolzyCoursePlayerPage: React.FC = () => {
+interface TolzyCoursePlayerPageProps {
+    initialCourse?: Course | null;
+}
+
+const TolzyCoursePlayerPage: React.FC<TolzyCoursePlayerPageProps> = ({ initialCourse }) => {
     const params = useParams();
     const router = useRouter();
     const courseId = params?.courseId as string;
-    const [course, setCourse] = useState<Course | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [course, setCourse] = useState<Course | null>(initialCourse || null);
+    const [loading, setLoading] = useState(!initialCourse);
 
     // Auto-fetch real student count if missing
     // Auto-fetch real student count

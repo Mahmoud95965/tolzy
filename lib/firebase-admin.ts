@@ -1,35 +1,38 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Tool } from '@/src/types/tool';
+import { Course } from '@/src/types/learn';
+import { NewsArticle } from '@/src/types/index';
+
+export let adminInitError: Error | null = null;
+
+// Helper function for safe error logging
+export function logError(error: unknown, context: string) {
+    if (error instanceof Error) {
+        console.warn(`⚠️ ${context}:`, error.message);
+    } else {
+        console.warn(`⚠️ ${context} (unknown error):`, error);
+    }
+}
 
 // Initialize Firebase Admin SDK for server-side operations
 function initAdmin() {
     if (getApps().length === 0) {
         try {
-            // For Vercel deployment, use environment variables
-            console.log('🔑 initializing admin with project:', process.env.FIREBASE_PROJECT_ID);
-            // Handle formatting of the private key
             let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
             if (privateKey) {
-                // If the key is wrapped in quotes, remove them
+                // Remove wrapping quotes
                 if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
                     privateKey = privateKey.slice(1, -1);
                 }
 
                 // Replace literal \n with actual newlines
                 privateKey = privateKey.replace(/\\n/g, '\n');
-
-                // Ensure it has the correct headers/footers if missing?
-                // Usually keys from Env are complete. 
-                // Just checking if it looks valid
-                if (!privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
-                    console.warn('⚠️ FIREBASE_PRIVATE_KEY seems to be missing the PEM header.');
-                }
             }
 
             if (!privateKey || !process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL) {
-                console.warn('⚠️ Firebase Admin credentials not found, using client SDK fallback');
+                adminInitError = new Error('Missing FIREBASE_PRIVATE_KEY, FIREBASE_PROJECT_ID, or FIREBASE_CLIENT_EMAIL');
                 return null;
             }
 
@@ -42,8 +45,9 @@ function initAdmin() {
             });
 
             console.log('✅ Firebase Admin initialized successfully');
-        } catch (error) {
-            console.error('❌ Error initializing Firebase Admin:', error);
+        } catch (error: unknown) {
+            logError(error, 'Error initializing Firebase Admin');
+            adminInitError = error instanceof Error ? error : new Error('Unknown error initializing Firebase Admin');
             return null;
         }
     }
@@ -70,8 +74,8 @@ export async function getAllToolsFromFirebase(): Promise<Tool[]> {
 
         console.log(`✅ Fetched ${tools.length} tools from Firebase Admin`);
         return tools;
-    } catch (error) {
-        console.error('❌ Error fetching tools from Firebase Admin:', error);
+    } catch (error: unknown) {
+        logError(error, 'Error fetching all tools from Firebase Admin');
         return [];
     }
 }
@@ -94,8 +98,56 @@ export async function getToolByIdFromFirebase(id: string): Promise<Tool | null> 
             id: toolDoc.id,
             ...toolDoc.data(),
         } as Tool;
+    } catch (error: unknown) {
+        logError(error, `Error fetching tool ${id} from Firebase Admin (falling back to client)`);
+        return null;
+    }
+}
+
+// --- NEWS HELPERS ---
+
+export async function getAllNewsFromFirebase(): Promise<NewsArticle[]> {
+    try {
+        if (!adminDb) return [];
+        const snapshot = await adminDb.collection('news').orderBy('createdAt', 'desc').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NewsArticle));
     } catch (error) {
-        console.warn(`⚠️ Error fetching tool ${id} from Firebase Admin (falling back to client):`, error.message);
+        logError(error, 'Error fetching news');
+        return [];
+    }
+}
+
+export async function getNewsByIdFromFirebase(id: string): Promise<NewsArticle | null> {
+    try {
+        if (!adminDb) return null;
+        const doc = await adminDb.collection('news').doc(id).get();
+        return doc.exists ? ({ id: doc.id, ...doc.data() } as NewsArticle) : null;
+    } catch (error) {
+        logError(error, `Error fetching news ${id}`);
+        return null;
+    }
+}
+
+// --- COURSES HELPERS ---
+
+export async function getAllCoursesFromFirebase(): Promise<Course[]> {
+    try {
+        if (!adminDb) return [];
+        const snapshot = await adminDb.collection('courses').where('isPublished', '==', true).get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+    } catch (error) {
+        logError(error, 'Error fetching courses');
+        return [];
+    }
+}
+
+export async function getCourseByIdFromFirebase(id: string): Promise<Course | null> {
+    try {
+        if (!adminDb) return null;
+        const doc = await adminDb.collection('courses').doc(id).get();
+        return doc.exists ? ({ id: doc.id, ...doc.data() } as Course) : null;
+    } catch (error) {
+        logError(error, `Error fetching course ${id}`);
         return null;
     }
 }

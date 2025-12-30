@@ -7,19 +7,20 @@ import Link from 'next/link';
 import PageLayout from '../components/layout/PageLayout';
 import SavedTools from '../components/tools/SavedTools';
 import { updateProfile } from 'firebase/auth';
-import { User, Camera, Loader, Mail, Calendar, Shield, Upload, Settings, Edit2, Check, X, Award, Heart, Bookmark, Activity, BookOpen } from 'lucide-react';
+import { User, Camera, Loader, Mail, Calendar, Shield, Settings, Edit2, Check, X, Award, Heart, Bookmark, Activity, Upload, BookOpen, FileText } from 'lucide-react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db } from '../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
-  const { userData, loading: loadingUserData } = useUserData();
+  const { userData } = useUserData();
   const { tools, isLoading: isLoadingTools } = useTools();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(userData?.firstName || '');
   const [lastName, setLastName] = useState(userData?.lastName || '');
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
+
   const [email, setEmail] = useState(user?.email || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,14 +29,14 @@ const ProfilePage: React.FC = () => {
   const storage = getStorage();
 
   // التحقق من صلاحيات المسؤول
-  const isAdmin = user?.email === 'mahmoud@gmail.com';
+  const isAdmin = userData?.role === 'admin' || user?.email === 'mahmoud@gmail.com';
 
   // Update local state when userData loads
   React.useEffect(() => {
     if (userData) {
       setFirstName(userData.firstName || '');
       setLastName(userData.lastName || '');
-      setDisplayName(userData.displayName || user?.displayName || '');
+
     }
     if (user?.email) {
       setEmail(user.email);
@@ -501,7 +502,7 @@ const ProfilePage: React.FC = () => {
 
         {/* Admin Dashboard Section - للمسؤولين فقط */}
         {isAdmin && (
-          <div className="mt-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl overflow-hidden">
+          <div className="mt-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl overflow-hidden animate-fade-in">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -565,34 +566,58 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </Link>
 
-                {/* إحصائيات سريعة */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                {/* إدارة الأخبار */}
+                <Link
+                  href="/admin/tolzy-learn?tab=news"
+                  className="bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all duration-300 rounded-xl p-6 group"
+                >
                   <div className="flex items-start gap-4">
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <Settings className="h-6 w-6 text-white" />
+                    <div className="bg-white/20 p-3 rounded-lg group-hover:scale-110 transition-transform">
+                      <FileText className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-white mb-1">إحصائيات</h4>
-                      <div className="space-y-2 mt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-indigo-100">إجمالي الأدوات</span>
-                          <span className="text-lg font-bold text-white">{tools.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-indigo-100">الأدوات المميزة</span>
-                          <span className="text-lg font-bold text-white">
-                            {tools.filter(t => t.isFeatured).length}
-                          </span>
-                        </div>
+                      <h4 className="text-lg font-semibold text-white mb-1">إدارة الأخبار</h4>
+                      <p className="text-sm text-indigo-100">
+                        نشر وتعديل الأخبار والمقالات
+                      </p>
+                      <div className="mt-3 flex items-center text-white text-sm font-medium">
+                        <span>الذهاب إلى الأخبار</span>
+                        <svg className="w-4 h-4 mr-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
+
+                {/* لوحة التحكم الرئيسية */}
+                <Link
+                  href="/admin"
+                  className="bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all duration-300 rounded-xl p-6 group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-white/20 p-3 rounded-lg group-hover:scale-110 transition-transform">
+                      <Activity className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-white mb-1">لوحة التحكم</h4>
+                      <p className="text-sm text-indigo-100">
+                        نظرة عامة وإحصائيات
+                      </p>
+                      <div className="mt-3 flex items-center text-white text-sm font-medium">
+                        <span>الذهاب للوحة التحكم</span>
+                        <svg className="w-4 h-4 mr-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               </div>
 
               <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg">
                 <p className="text-sm text-indigo-100 text-center">
-                  🎉 مرحباً بك في لوحة التحكم! يمكنك الآن إدارة جميع الأدوات بسهولة
+                  🎉 مرحباً بك في لوحة التحكم! يمكنك الآن إدارة جميع الأقسام بسهولة
                 </p>
               </div>
             </div>
