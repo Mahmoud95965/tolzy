@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageLayout from '../../src/components/layout/PageLayout';
 import { useAuth } from '../../src/context/AuthContext';
 import { useUserData } from '../../src/hooks/useUserData';

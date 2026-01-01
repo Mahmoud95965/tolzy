@@ -11,7 +11,7 @@ import { User, Camera, Loader, Mail, Calendar, Shield, Settings, Edit2, Check, X
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db } from '../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();

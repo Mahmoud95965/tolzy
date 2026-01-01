@@ -57,8 +57,32 @@ function initAdmin() {
 
 export const adminDb = initAdmin();
 
+// Helper to serialize Firestore data (convert Timestamps to strings)
+const serializeData = (data: any): any => {
+    if (!data) return data;
+
+    const serialized = { ...data };
+
+    const convert = (val: any) => {
+        if (val && typeof val.toDate === 'function') {
+            return val.toDate().toISOString();
+        }
+        return val;
+    };
+
+    // Common date fields to check
+    ['createdAt', 'updatedAt', 'submittedAt', 'reviewedAt', 'date'].forEach(field => {
+        if (serialized[field]) {
+            serialized[field] = convert(serialized[field]);
+        }
+    });
+
+    return serialized;
+};
+
 // Helper function to get all tools for SSR/SSG
 export async function getAllToolsFromFirebase(): Promise<Tool[]> {
+
     try {
         if (!adminDb) {
             console.warn('⚠️ Admin DB not available, returning empty array');
@@ -67,7 +91,7 @@ export async function getAllToolsFromFirebase(): Promise<Tool[]> {
 
         const toolsSnapshot = await adminDb.collection('tools').get();
 
-        const tools = toolsSnapshot.docs.map((doc) => ({
+        const tools = toolsSnapshot.docs.map((doc) => serializeData({
             id: doc.id,
             ...doc.data(),
         })) as Tool[];
@@ -94,10 +118,10 @@ export async function getToolByIdFromFirebase(id: string): Promise<Tool | null> 
             return null;
         }
 
-        return {
+        return serializeData({
             id: toolDoc.id,
             ...toolDoc.data(),
-        } as Tool;
+        }) as Tool;
     } catch (error: unknown) {
         logError(error, `Error fetching tool ${id} from Firebase Admin (falling back to client)`);
         return null;
@@ -110,7 +134,7 @@ export async function getAllNewsFromFirebase(): Promise<NewsArticle[]> {
     try {
         if (!adminDb) return [];
         const snapshot = await adminDb.collection('news').orderBy('createdAt', 'desc').get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NewsArticle));
+        return snapshot.docs.map(doc => serializeData({ id: doc.id, ...doc.data() }) as NewsArticle);
     } catch (error) {
         logError(error, 'Error fetching news');
         return [];
@@ -121,7 +145,7 @@ export async function getNewsByIdFromFirebase(id: string): Promise<NewsArticle |
     try {
         if (!adminDb) return null;
         const doc = await adminDb.collection('news').doc(id).get();
-        return doc.exists ? ({ id: doc.id, ...doc.data() } as NewsArticle) : null;
+        return doc.exists ? (serializeData({ id: doc.id, ...doc.data() }) as NewsArticle) : null;
     } catch (error) {
         logError(error, `Error fetching news ${id}`);
         return null;
@@ -134,7 +158,7 @@ export async function getAllCoursesFromFirebase(): Promise<Course[]> {
     try {
         if (!adminDb) return [];
         const snapshot = await adminDb.collection('courses').where('isPublished', '==', true).get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        return snapshot.docs.map(doc => serializeData({ id: doc.id, ...doc.data() }) as Course);
     } catch (error) {
         logError(error, 'Error fetching courses');
         return [];
@@ -145,7 +169,7 @@ export async function getCourseByIdFromFirebase(id: string): Promise<Course | nu
     try {
         if (!adminDb) return null;
         const doc = await adminDb.collection('courses').doc(id).get();
-        return doc.exists ? ({ id: doc.id, ...doc.data() } as Course) : null;
+        return doc.exists ? (serializeData({ id: doc.id, ...doc.data() }) as Course) : null;
     } catch (error) {
         logError(error, `Error fetching course ${id}`);
         return null;
