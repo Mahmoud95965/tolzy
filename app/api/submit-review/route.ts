@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 
+// Helper to set CORS headers
+function corsHeaders() {
+    return {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+}
+
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders() });
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -9,7 +22,7 @@ export async function POST(request: NextRequest) {
         if (!courseId || !review || !review.userId || !review.rating) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
-                { status: 400 }
+                { status: 400, headers: corsHeaders() }
             );
         }
 
@@ -28,7 +41,7 @@ export async function POST(request: NextRequest) {
                         hasAdminDb: !!adminDb
                     }
                 },
-                { status: 500 }
+                { status: 500, headers: corsHeaders() }
             );
         }
 
@@ -72,13 +85,13 @@ export async function POST(request: NextRequest) {
             reviewId: reviewRef.id,
             newRating: newAverage,
             newReviewsCount: count
-        });
+        }, { headers: corsHeaders() });
 
     } catch (error: any) {
         console.error('❌ [API] Error submitting review:', error);
         return NextResponse.json(
             { error: 'Internal Server Error', details: error.message },
-            { status: 500 }
+            { status: 500, headers: corsHeaders() }
         );
     }
 }

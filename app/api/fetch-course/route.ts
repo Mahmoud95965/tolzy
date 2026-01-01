@@ -1,29 +1,31 @@
+import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { adminDb } from '../lib/firebase-admin'; // Ensure this path is correct for your project structure
+import { adminDb } from '@/lib/firebase-admin';
 
-export default async function handler(req, res) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// Helper to set CORS headers
+function corsHeaders() {
+    return {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+}
 
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders() });
+}
 
-    // Only allow POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
+export async function POST(req: NextRequest) {
     try {
-        const { url, courseId } = req.body; // Accept courseId to update Firestore
+        const body = await req.json();
+        const { url, courseId } = body;
 
         if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
+            return NextResponse.json(
+                { error: 'URL is required' },
+                { status: 400, headers: corsHeaders() }
+            );
         }
 
         const response = await axios.get(url, {
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
         let datePublished = '';
         let studentsCount = 0;
 
-        $('script[type="application/ld+json"]').each((i, el) => {
+        $('script[type="application/ld+json"]').each((_, el) => {
             try {
                 const jsonContent = $(el).html();
                 if (!jsonContent) return;
@@ -79,7 +81,7 @@ export default async function handler(req, res) {
                         }
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Error parsing JSON-LD:', e.message);
             }
         });
@@ -118,7 +120,6 @@ export default async function handler(req, res) {
         }
 
         // --- Server-Side Update Logic ---
-        // If courseId is provided and we found a new student count, update Firestore secure
         if (courseId && studentsCount > 0 && adminDb) {
             try {
                 const courseRef = adminDb.collection('courses').doc(courseId);
@@ -126,11 +127,10 @@ export default async function handler(req, res) {
                 console.log(`✅ [API] Updated student count for ${courseId}: ${studentsCount}`);
             } catch (dbError) {
                 console.error('❌ [API] Failed to update Firestore:', dbError);
-                // Continue execution, don't fail the request just because of DB update
             }
         }
 
-        res.status(200).json({
+        return NextResponse.json({
             title: title.trim(),
             description: description.trim(),
             thumbnail: image,
@@ -138,14 +138,17 @@ export default async function handler(req, res) {
             reviewsCount,
             datePublished,
             studentsCount
-        });
+        }, { headers: corsHeaders() });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching course:', error.message);
         if (error.response?.status === 403) {
-            return res.status(403).json({ error: 'Udemy security blocked the request.' });
+            return NextResponse.json(
+                { error: 'Udemy security blocked the request.' },
+                { status: 403, headers: corsHeaders() }
+            );
         }
-        res.status(200).json({
+        return NextResponse.json({
             title: '',
             description: '',
             thumbnail: '',
@@ -154,6 +157,6 @@ export default async function handler(req, res) {
             datePublished: '',
             studentsCount: 0,
             error: 'Scraping blocked or failed'
-        });
+        }, { headers: corsHeaders() });
     }
 }
