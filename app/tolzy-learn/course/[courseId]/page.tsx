@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import TolzyCoursePlayerPage from '@/src/views/TolzyCoursePlayerPage';
 import { getAllCoursesFromFirebase, getCourseByIdFromFirebase } from '@/lib/firebase-admin';
+import { getSmartKeywords } from '@/src/utils/seoHelpers';
 
 type Props = {
     params: Promise<{ courseId: string }>;
@@ -47,6 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             'كورس مجاني',
             'تعليم البرمجة بالعربي',
             'دورة شاملة',
+            ...getSmartKeywords(courseName + ' ' + (course.category || '') + ' ' + courseDescription)
         ],
         openGraph: {
             title: `${courseName} - Tolzy Learn`,

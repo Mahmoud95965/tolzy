@@ -22,7 +22,12 @@ export const generateToolSEO = (tool: any): ToolSEO => {
     'AI tool',
     tool.pricing === 'Free' ? 'مجاني' : '',
     'tolzy',
-    'أدوات AI'
+    'أدوات AI',
+    'تولزي',
+    'توليزي',
+    'تولز',
+    'تولزي أدوات',
+    'tolzy ai tools'
   ].filter(Boolean).join(', ');
 
   const structuredData = {
@@ -101,7 +106,7 @@ export const generateCategorySEO = (category: string, toolCount: number) => {
 
   const title = `أفضل ${toolCount}+ أداة ${arabicCategory} بالذكاء الاصطناعي 2025 | Tolzy`;
   const description = `اكتشف أفضل ${toolCount} أداة ${arabicCategory} مدعومة بالذكاء الاصطناعي. أدوات مجانية ومدفوعة للطلاب والمحترفين. مراجعات وتقييمات حقيقية. ابدأ الآن مجاناً!`;
-  const keywords = `أدوات ${arabicCategory}, ${category} tools, AI ${arabicCategory}, أدوات ذكاء اصطناعي ${arabicCategory}, أدوات مجانية ${arabicCategory}, tolzy, أدوات AI 2025`;
+  const keywords = `أدوات ${arabicCategory}, ${category} tools, AI ${arabicCategory}, أدوات ذكاء اصطناعي ${arabicCategory}, أدوات مجانية ${arabicCategory}, tolzy, أدوات AI 2025, تولزي, توليزي, تولز, تولزي أدوات, tolzy ai tools`;
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -281,4 +286,66 @@ export const generateTolzyEcosystemData = () => {
       "audienceType": ["الطلاب", "المعلمون", "المطورون", "المصممون", "الباحثون", "مبدعو المحتوى"]
     }
   };
+};
+
+/**
+ * Smart Keywords Generator
+ * automatically injects high-value keywords based on content
+ */
+export const getSmartKeywords = (text: string = ''): string[] => {
+  const content = text.toLowerCase();
+
+  // Base keywords - always included
+  const coreKeywords = [
+    'كورسات برمجة',
+    'كورسات برمجة مجانية',
+    'تعلم البرمجة',
+    'تعلم البرمجة من الصفر',
+    'برمجة للمبتدئين',
+    'مواقع تعلم البرمجة',
+    'أفضل موقع لتعلم البرمجة',
+    'تعلم البرمجة أونلاين',
+    'كورسات أونلاين مجانية',
+    'كورسات مجانية بشهادات',
+    'كورسات بشهادات معتمدة',
+    'شهادات برمجة مجانية',
+    'تعلم البرمجة بدون خبرة',
+    'أفضل كورس برمجة للمبتدئين',
+    'من أين أبدأ تعلم البرمجة'
+  ];
+
+  // Conditional keywords buckets
+  const keywordsMap: Record<string, string[]> = {
+    'python': [
+      'Python', 'تعلم بايثون', 'كورس بايثون', 'كورس بايثون مجاني',
+      'بايثون للمبتدئين', 'تعلم Python بالعربي'
+    ],
+    'javascript': [
+      'JavaScript', 'تعلم جافاسكريبت', 'كورس JavaScript',
+      'جافاسكريبت للمبتدئين', 'JS tutorial arabic'
+    ],
+    'web': [
+      'تعلم برمجة المواقع', 'تعلم HTML', 'تعلم CSS',
+      'تعلم Front End', 'تعلم Back End', 'Full Stack Developer',
+      'تطوير الويب'
+    ],
+    'ai': [
+      'كورسات ذكاء اصطناعي', 'تعلم الذكاء الاصطناعي',
+      'تعلم الذكاء الاصطناعي من الصفر', 'أدوات الذكاء الاصطناعي',
+      'تعلم استخدام ChatGPT', 'كتابة برومبتات بالذكاء الاصطناعي'
+    ],
+    'react': [
+      'تعلم React', 'كورس React', 'React JS بالعربي'
+    ]
+  };
+
+  // Check for matches
+  const matchedKeywords = Object.entries(keywordsMap).reduce((acc, [key, keywords]) => {
+    if (content.includes(key) || content.includes(keywords[1])) { // Check key or first Arabic keyword
+      return [...acc, ...keywords];
+    }
+    return acc;
+  }, [] as string[]);
+
+  return [...new Set([...coreKeywords, ...matchedKeywords])];
 };
