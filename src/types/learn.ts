@@ -58,7 +58,7 @@ export interface LearningPath {
     id: string;
     title: string;
     description: string;
-    icon: React.ReactNode; // Changed to ReactNode to support Lucide icons
+    icon: any; // Changed to ReactNode to support Lucide icons
     color: string;
     level: 'beginner' | 'intermediate' | 'advanced';
     duration: string;
@@ -66,4 +66,29 @@ export interface LearningPath {
     featured?: boolean;
     jobRole?: string;
     averageSalary?: string;
+}
+
+// Exam Interfaces
+export type QuestionType = 'mcq' | 'boolean';
+
+export interface Question {
+    id?: string;
+    type?: QuestionType;
+    q: string;
+    options?: string[];
+    a: string | boolean;
+    explanation?: string;
+}
+
+export interface Exam {
+    id: string;
+    title: string;
+    description: string;
+    thumbnail?: string;
+    questions: Question[];
+    duration?: number; // in minutes
+    passingScore?: number;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }

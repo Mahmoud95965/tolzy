@@ -3,12 +3,12 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { Course, Lesson } from '../../types/learn';
+import { Course, Lesson, Exam } from '../../types/learn';
 import {
     LayoutDashboard, BookOpen, BarChart2, Settings, Search, Bell,
     Plus, Filter, Grid, List, Edit2, Trash2,
     ExternalLink, RefreshCw, X, UploadCloud,
-    Users, Globe, Star, FileText, Image as ImageIcon
+    Users, Globe, Star, FileText, Image as ImageIcon, FileQuestion
 } from 'lucide-react';
 import type { NewsArticle } from '../../types/index';
 import { publishNewsArticle, listAllNews, updateNews, deleteNews } from '../../services/news.service';
@@ -58,11 +58,17 @@ const TolzyLearnAdminPage: React.FC = () => {
         fetchNews();
     }, []);
 
+    // Exam State
+    const [exams, setExams] = useState<Exam[]>([]);
+    const [currentExam, setCurrentExam] = useState<Partial<Exam>>({});
+    const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
+    const [examFile, setExamFile] = useState<File | null>(null);
+
     // News State
     const searchParams = useSearchParams();
-    const initialTab = searchParams.get('tab') === 'news' ? 'news' : 'courses';
+    const initialTab = searchParams.get('tab') === 'news' ? 'news' : searchParams.get('tab') === 'exams' ? 'exams' : 'courses';
     const [news, setNews] = useState<NewsArticle[]>([]);
-    const [activeTab, setActiveTab] = useState<'courses' | 'news'>(initialTab);
+    const [activeTab, setActiveTab] = useState<'courses' | 'news' | 'exams'>(initialTab);
     const [currentNews, setCurrentNews] = useState<Partial<NewsArticle>>({});
     const [isNewsDrawerOpen, setIsNewsDrawerOpen] = useState(false);
 
@@ -144,6 +150,24 @@ const TolzyLearnAdminPage: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const fetchExams = async () => {
+        try {
+            const q = query(collection(db, 'exams'), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            const fetchedExams: Exam[] = [];
+            querySnapshot.forEach((doc) => {
+                fetchedExams.push({ id: doc.id, ...doc.data() } as Exam);
+            });
+            setExams(fetchedExams);
+        } catch (error) {
+            console.error('Error fetching exams:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchExams();
+    }, []);
 
     const handleEditClick = (course: Course) => {
         setCurrentCourse(course);
@@ -265,6 +289,119 @@ const TolzyLearnAdminPage: React.FC = () => {
         }
     };
 
+    // --- Exam Logic ---
+
+    const handleCreateExamClick = () => {
+        setCurrentExam({
+            title: '',
+            description: '',
+            isActive: true,
+            questions: []
+        });
+        setExamFile(null);
+        setIsExamDrawerOpen(true);
+    };
+
+    const handleEditExamClick = (exam: Exam) => {
+        setCurrentExam(exam);
+        setExamFile(null);
+        setIsExamDrawerOpen(true);
+    };
+
+    const handleExamFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) setExamFile(file);
+    };
+
+    const parseExamJson = async (file: File): Promise<any[]> => {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        // Ensure data is array
+        const items = Array.isArray(data) ? data : (data.questions || []);
+
+        // Normalize questions
+        return items.map((item: any) => {
+            let type = item.type;
+            // Infer type if missing
+            if (!type) {
+                if (item.options && Array.isArray(item.options)) {
+                    type = 'mcq';
+                } else if (typeof item.a === 'boolean') {
+                    type = 'boolean';
+                } else {
+                    type = 'mcq'; // Default fallback
+                }
+            }
+
+            return {
+                q: item.q || '',
+                a: item.a ?? null,
+                options: item.options || null,
+                type: type || 'mcq',
+                explanation: item.explanation || null
+            };
+        });
+    };
+
+    const handleSaveExam = async () => {
+        if (!currentExam.title) return;
+        setIsSaving(true);
+        try {
+            let questions = currentExam.questions || [];
+
+            // Process File Upload if exists
+            if (examFile) {
+                try {
+                    const parsedQuestions = await parseExamJson(examFile);
+                    questions = parsedQuestions;
+                } catch (err) {
+                    alert('Error parsing JSON file. Please check format.');
+                    setIsSaving(false);
+                    return;
+                }
+            }
+
+            // Sanitize exam data to remove undefined values
+            const examData = {
+                title: currentExam.title || '',
+                description: currentExam.description || '',
+                isActive: currentExam.isActive ?? true,
+                questions: questions,
+                updatedAt: new Date().toISOString(),
+                passingScore: currentExam.passingScore || 0,
+                duration: currentExam.duration || 0,
+                thumbnail: currentExam.thumbnail || null
+            };
+
+            if (currentExam.id) {
+                await updateDoc(doc(db, 'exams', currentExam.id), examData);
+            } else {
+                await addDoc(collection(db, 'exams'), {
+                    ...examData,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+            setIsExamDrawerOpen(false);
+            fetchExams();
+        } catch (error) {
+            console.error('Error saving exam:', error);
+            alert('Failed to save exam');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteExam = async (id: string) => {
+        if (window.confirm('Delete this exam?')) {
+            try {
+                await deleteDoc(doc(db, 'exams', id));
+                fetchExams();
+            } catch (error) {
+                console.error('Error deleting exam:', error);
+            }
+        }
+    };
+
     // Filtered Courses
     const filteredCourses = courses.filter(c =>
         c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -298,6 +435,12 @@ const TolzyLearnAdminPage: React.FC = () => {
                         active={activeTab === 'news'}
                         onClick={() => setActiveTab('news')}
                     />
+                    <SidebarItem
+                        icon={FileQuestion}
+                        label="الاختبارات"
+                        active={activeTab === 'exams'}
+                        onClick={() => setActiveTab('exams')}
+                    />
                     <SidebarItem icon={BarChart2} label="التحليلات" />
                     <SidebarItem icon={Settings} label="الإعدادات" />
                 </nav>
@@ -320,7 +463,7 @@ const TolzyLearnAdminPage: React.FC = () => {
                 {/* Top Bar */}
                 <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {activeTab === 'courses' ? 'إدارة الدورات' : 'إدارة الأخبار'}
+                        {activeTab === 'courses' ? 'إدارة الدورات' : activeTab === 'news' ? 'إدارة الأخبار' : 'إدارة الاختبارات'}
                     </h1>
 
                     <div className="flex items-center gap-4">
@@ -339,11 +482,11 @@ const TolzyLearnAdminPage: React.FC = () => {
                             <span className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
                         <button
-                            onClick={activeTab === 'courses' ? handleCreateClick : handleCreateNewsClick}
+                            onClick={activeTab === 'courses' ? handleCreateClick : activeTab === 'news' ? handleCreateNewsClick : handleCreateExamClick}
                             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            {activeTab === 'courses' ? 'إضافة دورة جديدة' : 'إضافة خبر جديد'}
+                            {activeTab === 'courses' ? 'إضافة دورة جديدة' : activeTab === 'news' ? 'إضافة خبر جديد' : 'إضافة اختبار جديد'}
                         </button>
                     </div>
                 </header>
@@ -381,6 +524,51 @@ const TolzyLearnAdminPage: React.FC = () => {
                     {loading ? (
                         <div className="flex justify-center py-20">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        </div>
+                    ) : activeTab === 'exams' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Exam Logic Rendering */}
+                            {exams.map((exam) => (
+                                <div key={exam.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                                    <div className="p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
+                                                <FileQuestion className="w-6 h-6" />
+                                            </div>
+                                            <StatusBadge status={exam.isActive ? 'active' : 'draft'} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{exam.title}</h3>
+                                        <p className="text-sm text-gray-500 mb-6 line-clamp-2">
+                                            {exam.description || 'لا يوجد وصف'}
+                                        </p>
+                                        <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+                                            <span>{exam.questions?.length || 0} سؤال</span>
+                                            <span>{new Date(exam.createdAt || Date.now()).toLocaleDateString('ar-EG')}</span>
+                                        </div>
+                                        <div className="pt-4 border-t border-gray-100 flex gap-2">
+                                            <a
+                                                href={`/exams/${exam.id}`}
+                                                target="_blank"
+                                                className="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors text-sm"
+                                            >
+                                                عرض
+                                            </a>
+                                            <button
+                                                onClick={() => handleEditExamClick(exam)}
+                                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                            >
+                                                تعديل
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteExam(exam.id)}
+                                                className="px-3 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : activeTab === 'courses' ? (
                         viewMode === 'table' ? (
@@ -818,6 +1006,105 @@ const TolzyLearnAdminPage: React.FC = () => {
                                 onClick={handleSave}
                                 disabled={isSaving}
                                 className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
+                                حفظ التغييرات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Exam Edit Drawer */}
+            {isExamDrawerOpen && (
+                <div className="fixed inset-0 z-50 flex justify-start">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsExamDrawerOpen(false)} />
+                    <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+                        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                            <h2 className="text-lg font-bold text-gray-900">
+                                {currentExam.id ? 'تعديل الاختبار' : 'اختبار جديد'}
+                            </h2>
+                            <button onClick={() => setIsExamDrawerOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                            <section className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">عنوان الاختبار</label>
+                                    <input
+                                        type="text"
+                                        value={currentExam.title || ''}
+                                        onChange={e => setCurrentExam({ ...currentExam, title: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
+                                    <textarea
+                                        rows={3}
+                                        value={currentExam.description || ''}
+                                        onChange={e => setCurrentExam({ ...currentExam, description: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
+                                    <select
+                                        value={currentExam.isActive ? 'active' : 'draft'}
+                                        onChange={e => setCurrentExam({ ...currentExam, isActive: e.target.value === 'active' })}
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    >
+                                        <option value="active">نشط</option>
+                                        <option value="draft">مسودة</option>
+                                    </select>
+                                </div>
+                            </section>
+
+                            {/* Questions Upload */}
+                            <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
+                                <h3 className="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                                    <FileQuestion className="w-5 h-5" />
+                                    رفع الأسئلة (JSON)
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div className="bg-white p-4 rounded-lg border border-indigo-100 text-sm text-gray-600">
+                                        <p className="mb-2 font-semibold">عدد الأسئلة الحالي: <span className="text-indigo-600">{currentExam.questions?.length || 0}</span></p>
+                                        <p>قم برفع ملف JSON جديد لاستبدال الأسئلة الحالية.</p>
+                                    </div>
+
+                                    <input
+                                        type="file"
+                                        accept=".json"
+                                        onChange={handleExamFileChange}
+                                        className="block w-full text-sm text-slate-500
+                                            file:mr-4 file:py-2 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-indigo-50 file:text-indigo-700
+                                            hover:file:bg-indigo-100
+                                        "
+                                    />
+                                    {examFile && (
+                                        <p className="text-xs text-green-600 font-medium">تم تحديد الملف: {examFile.name}</p>
+                                    )}
+                                </div>
+                            </section>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsExamDrawerOpen(false)}
+                                className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleSaveExam}
+                                disabled={isSaving || !currentExam.title}
+                                className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isSaving && <RefreshCw className="w-4 h-4 animate-spin" />}
                                 حفظ التغييرات

@@ -14,6 +14,7 @@ import {
     Activity,
     ArrowRight,
     Shield,
+    FileQuestion,
 } from 'lucide-react';
 import { collection, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../src/config/firebase';
@@ -26,7 +27,9 @@ const AdminDashboard = () => {
         users: 0,
         tools: 0,
         courses: 0,
-        news: 0
+        courses: 0,
+        news: 0,
+        exams: 1
     });
 
     useEffect(() => {
@@ -101,6 +104,15 @@ const AdminDashboard = () => {
             color: 'bg-rose-500',
             stat: stats.news,
             statLabel: 'مقال'
+        },
+        {
+            title: 'إدارة الاختبارات',
+            description: 'إدارة اختبارات الذكاء الاصطناعي وبنك الأسئلة',
+            icon: FileQuestion,
+            href: '/admin/tolzy-learn?tab=exams',
+            color: 'bg-amber-500',
+            stat: stats.exams,
+            statLabel: 'اختبار'
         }
     ];
 
@@ -163,7 +175,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Main Navigation Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {adminCards.map((card, index) => (
                             <Link
                                 href={card.href}

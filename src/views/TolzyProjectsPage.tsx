@@ -1,7 +1,7 @@
 import React from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import SEO from '../components/SEO';
-import { ExternalLink, Sparkles, BookOpen } from 'lucide-react';
+import { ExternalLink, Sparkles, BookOpen, Bot } from 'lucide-react';
 
 interface TolzyProject {
   id: string;
@@ -41,6 +41,15 @@ const TolzyProjectsPage: React.FC = () => {
       icon: <Sparkles className="w-12 h-12" />,
       color: 'indigo',
       status: 'live'
+    },
+    {
+      id: 'tolzy-ai',
+      name: 'Tolzy AI',
+      description: 'مختبر الذكاء الاصطناعي - استكشف وجرب أحدث نماذج الذكاء الاصطناعي (Gemini Pro) والأدوات التجريبية',
+      url: '/tolzy-ai',
+      icon: <Bot className="w-12 h-12" />,
+      color: 'blue',
+      status: 'live'
     }
   ];
 
@@ -49,7 +58,9 @@ const TolzyProjectsPage: React.FC = () => {
       purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', hover: 'hover:bg-purple-100 dark:hover:bg-purple-900/30' },
       indigo: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400', hover: 'hover:bg-indigo-100 dark:hover:bg-indigo-900/30' },
       green: { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', hover: 'hover:bg-green-100 dark:hover:bg-green-900/30' },
-      orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', hover: 'hover:bg-orange-100 dark:hover:bg-orange-900/30' }
+      green: { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', hover: 'hover:bg-green-100 dark:hover:bg-green-900/30' },
+      orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', hover: 'hover:bg-orange-100 dark:hover:bg-orange-900/30' },
+      blue: { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', hover: 'hover:bg-blue-100 dark:hover:bg-blue-900/30' }
     };
     return colors[color] || colors.indigo;
   };
