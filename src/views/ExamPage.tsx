@@ -28,7 +28,7 @@ export interface ExamData {
 }
 
 const ExamPage: React.FC<{ exam: ExamData }> = ({ exam }) => {
-    const { theme, setTheme, resolvedTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<Record<number, any>>({});
     const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
@@ -422,8 +422,8 @@ const ExamPage: React.FC<{ exam: ExamData }> = ({ exam }) => {
                     <button
                         onClick={nextQuestion}
                         className={`flex-1 text-white rounded-xl font-bold py-3 transition-all shadow-lg flex items-center justify-center gap-2 ${isAnswered || isLast
-                                ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
-                                : 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed shadow-none'
+                            ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
+                            : 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed shadow-none'
                             }`}
                     // Allow skipping if not answered? User said "Show correct answer BEFORE moving". 
                     // If I click Next without answering, do I skip?
