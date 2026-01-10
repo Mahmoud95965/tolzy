@@ -27,7 +27,6 @@ const AdminDashboard = () => {
         users: 0,
         tools: 0,
         courses: 0,
-        courses: 0,
         news: 0,
         exams: 1
     });
