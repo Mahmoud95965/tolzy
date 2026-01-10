@@ -48,12 +48,13 @@ const AdminDashboard = () => {
                 const coursesCount = (await getCountFromServer(collection(db, 'courses'))).data().count;
                 const newsCount = (await getCountFromServer(collection(db, 'news'))).data().count;
 
-                setStats({
+                setStats(prev => ({
+                    ...prev,
                     users: usersCount,
                     tools: toolsCount,
                     courses: coursesCount,
                     news: newsCount
-                });
+                }));
             } catch (error) {
                 console.error('Error fetching admin stats:', error);
             }
