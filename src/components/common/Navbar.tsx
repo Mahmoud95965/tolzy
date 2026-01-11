@@ -63,6 +63,31 @@ const Navbar: React.FC = () => {
     { name: 'البحث', icon: '🔬', path: '/tools?category=Research' }
   ];
 
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsCategoriesOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsCategoriesOpen(false);
+    }, 300);
+  };
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-500 ${isScrolled
       ? 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl border-b border-slate-200/50 dark:border-slate-700/50'
@@ -107,8 +132,8 @@ const Navbar: React.FC = () => {
               {/* Categories Dropdown */}
               <div
                 className="relative"
-                onMouseEnter={() => setIsCategoriesOpen(true)}
-                onMouseLeave={() => setIsCategoriesOpen(false)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 <button
                   className="group relative text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all duration-300"
