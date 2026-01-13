@@ -78,21 +78,39 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
     }
   }, [user]);
 
-  // Initial Setup Effect
+  // Ref to track if we've initialized from server/context
+  const initializedRef = React.useRef(false);
+
+  // 1. Initial Setup Effect (for server-side initialTool)
   useEffect(() => {
     if (initialTool) {
-      updateRelatedTools(initialTool); // Try to update related if tools are loaded
-      updateUserVote(initialTool);
+      setTool(initialTool);
+      initializedRef.current = true;
     }
-  }, [initialTool, updateRelatedTools, updateUserVote]);
+  }, [initialTool]);
 
+  // 2. Hydration from Context Effect
   useEffect(() => {
-    // If we have initial tool and just waiting for interactions/updates, 
-    // we still want to subscribe to changes but NOT overwrite with null/loading if context is slow.
+    if (!id || initializedRef.current || tool) return;
 
+    if (tools.length > 0) {
+      const normalizedId = id.toString().padStart(3, '0');
+      const toolFromContext = tools.find(t => t.id === normalizedId);
+      if (toolFromContext) {
+        setTool(toolFromContext);
+        setLoading(false);
+        // We found it in context, no need to subscribe individually if we trust context
+        // However, context might be stale. But for now, let's prioritize reducing reads.
+      }
+    }
+  }, [id, tools, tool]);
+
+  // Track attempted fetches to prevent loops
+  const attemptRef = React.useRef<{ [key: string]: number }>({});
+
+  // 3. Subscription Effect (Stable - depends ONLY on ID)
+  useEffect(() => {
     if (!id) {
-      // Only error if we also don't have initialTool? 
-      // Actually id is required for subscriptions.
       if (!initialTool) {
         setError('الأداة غير موجودة');
         setLoading(false);
@@ -100,28 +118,22 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
       return;
     }
 
-    // hydration check or context loading
-    // If we have tool, we don't block UI on toolsLoading
-    if (toolsLoading && !tool) {
+    // Skip if we already have the tool and it matches the ID (optimization)
+    const normalizedId = id.toString().padStart(3, '0');
+    if (tool && tool.id === normalizedId) {
       return;
     }
 
-    // Identify tool from Context if not set yet (SPA navigation)
-    // or if we need to hydrate related tools
-    if (!tool && tools.length > 0) {
-      setLoading(true);
-      const normalizedId = id.toString().padStart(3, '0');
-      const toolFromContext = tools.find(t => t.id === normalizedId);
-      if (toolFromContext) {
-        setTool(toolFromContext);
-        updateRelatedTools(toolFromContext);
-        updateUserVote(toolFromContext);
-        setLoading(false);
-      }
+    // Circuit breaker for loops
+    const attemptCount = attemptRef.current[normalizedId] || 0;
+    if (attemptCount > 3) {
+      console.warn(`Too many fetch attempts for tool ${normalizedId}, stopping.`);
+      setError('حدث خطأ أثناء تحميل الأداة (تجاوز الحد المسموح)');
+      setLoading(false);
+      return;
     }
+    attemptRef.current[normalizedId] = attemptCount + 1;
 
-    // Always subscribe for real-time updates (votes/saves)
-    const normalizedId = id.toString().padStart(3, '0');
     const toolRef = doc(db, 'tools', normalizedId);
 
     const unsubscribe = onSnapshot(
@@ -130,25 +142,21 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
         if (snapshot.exists()) {
           const toolData = { ...snapshot.data(), id: snapshot.id } as Tool;
           setTool(toolData);
-          updateRelatedTools(toolData);
-          updateUserVote(toolData);
           setError(null);
         } else {
-          // Document doesn't exist
-          // Only show error if we strictly don't have a tool
-          // (Client might have a stale ID, or server sent a tool that was JUST deleted?)
-          // For safety:
-          if (!tool) { // check state 'tool', not 'initialTool' variable which is static
-            setError('الأداة غير موجودة');
-            setTool(null);
-          }
+          setTool(null);
+          // Only show error if we strictly needed this to exist (not relying on context)
+          // But here, if it's missing from DB, it's an error.
+          setError('الأداة غير موجودة');
         }
         setLoading(false);
       },
-      (err) => {
+      (err: any) => {
         console.error('Error fetching tool:', err);
-        // Only show error if we have nothing to show
-        if (!tool && !initialTool) {
+        if (err.code === 'resource-exhausted') {
+          // Stop trying immediately on 429
+          setError('الخدمة مشغولة حالياً، يرجى المحاولة لاحقاً');
+        } else {
           setError('حدث خطأ أثناء تحميل الأداة');
         }
         setLoading(false);
@@ -156,7 +164,16 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
     );
 
     return () => unsubscribe();
-  }, [id, tools, toolsLoading, updateRelatedTools, updateUserVote]);
+  }, [id, initialTool, tool]); // Added tool to dep to skip if set
+
+
+  // 4. Derived Updates Effect (Related Tools & User Vote)
+  useEffect(() => {
+    if (tool) {
+      updateRelatedTools(tool);
+      updateUserVote(tool);
+    }
+  }, [tool, updateRelatedTools, updateUserVote]);
 
   const handleVote = async (isHelpful: boolean) => {
     if (!user) {
@@ -191,7 +208,8 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
     setIsSaving(true);
 
     try {
-      await updateToolSave(tool.id, user.uid);
+      const isSaved = tool.savedBy?.includes(user.uid) || false;
+      await updateToolSave(tool.id, user.uid, !isSaved);
     } catch (error) {
       console.error('Error saving tool:', error);
     } finally {

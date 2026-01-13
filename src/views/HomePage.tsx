@@ -1,16 +1,20 @@
 "use client";
 import React from 'react';
 import PageLayout from '../components/layout/PageLayout';
+import Link from 'next/link';
 import Hero from '../components/home/Hero';
+import LoggedInHome from '../components/home/LoggedInHome'; // New dashboard component
 import PopularToolsSection from '../components/home/PopularToolsSection';
 import AIToolCategories from '../components/home/AIToolCategories';
 import CallToAction from '../components/home/CallToAction';
 import { useTools } from '../hooks/useTools';
+import { useAuth } from '../context/AuthContext'; // Import Auth Context
 import { Loader } from 'lucide-react';
 import SEO from '../components/SEO';
 
 const HomePage: React.FC = () => {
   const { isLoading, error, featuredTools, newTools } = useTools();
+  const { user } = useAuth(); // Get auth state
 
   if (isLoading) {
     return (
@@ -32,6 +36,22 @@ const HomePage: React.FC = () => {
     );
   }
 
+  // If user is logged in, show the personalized dashboard
+  if (user) {
+    return (
+      <PageLayout>
+        <SEO
+          title="Tolzy - لوحة التحكم"
+          description="لوحة التحكم الخاصة بك في Tolzy. استكشف أحدث الأدوات والأخبار."
+          keywords="tolzy, dashboard, tools, news"
+          url="/"
+        />
+        <LoggedInHome />
+      </PageLayout>
+    );
+  }
+
+  // Default Landing Page for Guests
   return (
     <PageLayout>
       <SEO

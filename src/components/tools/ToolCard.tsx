@@ -44,7 +44,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
 
     setIsLoading(true);
     try {
-      const result = await updateToolSave(tool.id, user.uid);
+      const result = await updateToolSave(tool.id, user.uid, !isSaved);
       setIsSaved(result.isSaved);
       setSavedCount(prev => result.isSaved ? prev + 1 : prev - 1);
     } catch (error: any) {

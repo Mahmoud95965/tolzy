@@ -1,5 +1,5 @@
 import { db } from '../config/firebase';
-import { doc, runTransaction } from 'firebase/firestore';
+import { doc, runTransaction, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 export const updateToolVote = async (
   toolId: string,
@@ -8,20 +8,20 @@ export const updateToolVote = async (
 ) => {
   try {
     const toolRef = doc(db, 'tools', toolId);
-    
+
     return await runTransaction(db, async (transaction) => {
       const toolDoc = await transaction.get(toolRef);
-      
+
       if (!toolDoc.exists()) {
         throw new Error('Tool not found');
       }
-      
+
       const toolData = toolDoc.data();
-      const votes = { 
+      const votes = {
         helpful: [...(toolData.votes?.helpful || [])],
         notHelpful: [...(toolData.votes?.notHelpful || [])]
       };
-      
+
       let newRating = toolData.rating || 0;
 
       if (isHelpful) {
@@ -70,30 +70,40 @@ export const updateToolVote = async (
     });
   } catch (error: any) {
     console.error('Error updating vote:', error);
-    
+
     // Check if it's a permissions error
     if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
       throw new Error('يجب تسجيل الدخول للتصويت');
     }
-    
+
     throw new Error('فشل تحديث التصويت. يرجى المحاولة مرة أخرى.');
   }
 };
 
 export const updateToolSave = async (
   toolId: string,
-  userId: string
+  userId: string,
+  shouldSave?: boolean
 ) => {
   try {
     const toolRef = doc(db, 'tools', toolId);
-    
+
+    // Optimization: If we know the desired state, skip transaction/read and use atomic update
+    if (shouldSave !== undefined) {
+      await updateDoc(toolRef, {
+        savedBy: shouldSave ? arrayUnion(userId) : arrayRemove(userId)
+      });
+      return { success: true, isSaved: shouldSave };
+    }
+
+    // Fallback to transaction if state is unknown (requires Read)
     return await runTransaction(db, async (transaction) => {
       const toolDoc = await transaction.get(toolRef);
-      
+
       if (!toolDoc.exists()) {
         throw new Error('Tool not found');
       }
-      
+
       const toolData = toolDoc.data();
       const savedBy = [...(toolData.savedBy || [])];
       const isCurrentlySaved = savedBy.includes(userId);
@@ -110,12 +120,17 @@ export const updateToolSave = async (
     });
   } catch (error: any) {
     console.error('Error updating save:', error);
-    
+
     // Check if it's a permissions error
     if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
       throw new Error('يجب تسجيل الدخول لحفظ الأداة');
     }
-    
+
+    // If quota exceeded, we can try to surface that clearly
+    if (error?.code === 'resource-exhausted') {
+      throw new Error('عذراً، الخدمة مشغولة جداً حالياً. يرجى المحاولة لاحقاً.');
+    }
+
     throw new Error('فشل تحديث حالة الحفظ. يرجى المحاولة مرة أخرى.');
   }
 };
