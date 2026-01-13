@@ -36,7 +36,7 @@ const ToolDetailPageNew: React.FC<ToolDetailPageProps> = ({ initialTool }) => {
   const params = useParams();
   const id = params?.id as string;
   const { user } = useAuth();
-  const { tools, isLoading: toolsLoading } = useTools();
+  const { tools } = useTools();
 
   // Initialize with server data if available
   const [tool, setTool] = useState<Tool | null>(initialTool || null);

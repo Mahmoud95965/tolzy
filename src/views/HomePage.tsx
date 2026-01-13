@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import PageLayout from '../components/layout/PageLayout';
-import Link from 'next/link';
+
 import Hero from '../components/home/Hero';
 import LoggedInHome from '../components/home/LoggedInHome'; // New dashboard component
 import PopularToolsSection from '../components/home/PopularToolsSection';
