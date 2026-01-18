@@ -112,5 +112,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    // Hero Slides collection
+    match /hero_slides/{slideId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

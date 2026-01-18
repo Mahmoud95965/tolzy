@@ -2,41 +2,34 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Sparkles, TrendingUp, Newspaper, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
+import { ArrowRight, Sparkles, TrendingUp, Newspaper, ChevronLeft, ChevronRight, GraduationCap, Check } from 'lucide-react';
 import { useTools } from '../../hooks/useTools';
-import { listPublishedNews } from '../../services/news.service';
-import { NewsArticle } from '../../types';
+// import { listPublishedNews } from '../../services/news.service';
+import { NewsArticle } from '../../types'; // Kept for type casting if needed inside loops
 import ToolCard from '../tools/ToolCard';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, getDoc, doc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Course } from '../../types/learn';
 import SmartCourseCard from '../learn/SmartCourseCard';
+import { convertFirestoreDoc } from '../../services/tools.service';
+import { getHeroSlides } from '../../services/hero.service';
 
 const LoggedInHome: React.FC = () => {
     const router = useRouter();
     const { featuredTools } = useTools();
-    const [news, setNews] = useState<NewsArticle[]>([]);
+    const [slides, setSlides] = useState<any[]>([]);
+    // Fetched news removed to fix build error as it was unused
+    // const [news, setNews] = useState<NewsArticle[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
 
-    // Stunning Tool Data
-    const stunningTool = {
-        type: 'tool',
-        id: 'stunning-so',
-        name: "Stunning.so",
-        description: "أداة بناء مواقع إلكترونية مدعومة بالذكاء الاصطناعي تمكنك من إنشاء مواقع احترافية في ثوانٍ. قم بإنشاء مواقع كاملة مع نصوص وصور وتنسيقات مخصصة بمجرد وصف ما تحتاجه.",
-        url: "https://stunning.so",
-        imageUrl: "https://i.ibb.co/NgGgK1sW/stunning.gif",
-        features: ["بناء مواقع بلمح البصر", "كتابة محتوى تلقائية", "توليد صور AI", "تحسين SEO تلقائي"]
-    };
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch News
-                const articles = await listPublishedNews();
-                setNews(articles.slice(0, 4));
+                // Fetch News - Unused
+                // const articles = await listPublishedNews();
+                // setNews(articles.slice(0, 4));
 
                 // Fetch Courses
                 const coursesRef = collection(db, 'courses');
@@ -48,15 +41,77 @@ const LoggedInHome: React.FC = () => {
                 })) as Course[];
                 setCourses(fetchedCourses);
 
+                // Fetch Hero Slides
+                const heroSlides = await getHeroSlides();
+
+                // Helper to ensure absolute URL for external links
+                const ensureAbsoluteUrl = (url: string) => {
+                    if (!url) return '';
+                    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+                        return url;
+                    }
+                    return `https://${url}`;
+                };
+
+                // Process slides to resolve relations
+                const processedSlides = await Promise.all(heroSlides.map(async (slide: any) => {
+                    let itemData: any = { ...slide };
+
+                    if (slide.type === 'tool' && slide.itemId) {
+                        try {
+                            const toolDoc = await getDoc(doc(db, 'tools', slide.itemId));
+                            if (toolDoc.exists()) {
+                                const tool = convertFirestoreDoc(toolDoc);
+                                itemData = {
+                                    ...tool,
+                                    ...itemData, // Keep slide override props
+                                    name: slide.customTitle || tool.name,
+                                    description: slide.customDescription || tool.description,
+                                    imageUrl: slide.customImageUrl || tool.imageUrl,
+                                    url: slide.customLink ? ensureAbsoluteUrl(slide.customLink) : `/tools/${tool.id}`
+                                };
+                            }
+                        } catch (e) {
+                            console.error('Error fetching tool for slide:', e);
+                        }
+                    } else if (slide.type === 'news' && slide.itemId) {
+                        try {
+                            const newsDoc = await getDoc(doc(db, 'news', slide.itemId));
+                            if (newsDoc.exists()) {
+                                const newsItem = newsDoc.data() as NewsArticle;
+                                itemData = {
+                                    ...newsItem,
+                                    ...itemData,
+                                    title: slide.customTitle || newsItem.title,
+                                    content: slide.customDescription || newsItem.content,
+                                    coverImageUrl: slide.customImageUrl || newsItem.coverImageUrl,
+                                    url: slide.customLink ? ensureAbsoluteUrl(slide.customLink) : `/news/${newsItem.id}`
+                                };
+                            }
+                        } catch (e) {
+                            console.error('Error fetching news for slide:', e);
+                        }
+                    } else if (slide.type === 'external') {
+                        itemData = {
+                            ...itemData,
+                            title: slide.customTitle || '',
+                            description: slide.customDescription || '',
+                            imageUrl: slide.customImageUrl || '',
+                            url: ensureAbsoluteUrl(slide.customLink || '#')
+                        };
+                    }
+
+                    return itemData;
+                }));
+
+                setSlides(processedSlides.filter(s => s)); // Filter out nulls if any
+
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
         fetchData();
     }, []);
-
-    // Combine items for the slider: [Tool, ...News]
-    const slides = [stunningTool, ...news];
 
     // Auto-rotate Effect
     useEffect(() => {
@@ -96,31 +151,30 @@ const LoggedInHome: React.FC = () => {
                     <div className="space-y-8 animate-fade-in-up">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/30 text-indigo-100 text-sm font-medium">
                             <Sparkles className="w-4 h-4" />
-                            <span>أداة مميزة لهذا الأسبوع</span>
+                            <span>{item.customBadge || 'أداة مميزة لهذا الأسبوع'}</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                            ابنِ موقعك مع <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300">{item.name}</span>
+                            {item.titlePrefix ? `${item.titlePrefix} ` : (item.name.toLowerCase().includes('crawleo') ? 'غذّي نموذجك ' : 'ابنِ موقعك مع ')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300">{item.name}</span>
                         </h1>
                         <p className="text-xl text-indigo-100/90 leading-relaxed max-w-2xl">
                             {item.description}
                         </p>
                         <div className="flex flex-wrap gap-3">
-                            {item.features.map((feature: string, idx: number) => (
-                                <span key={idx} className="px-4 py-2 bg-white/10 rounded-lg text-sm text-white/80 border border-white/5">
+                            {item.features?.map((feature: string, idx: number) => (
+                                <span key={idx} className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg text-base text-white/90 border border-white/5 font-medium">
+                                    <Check className="w-4 h-4 text-green-400" />
                                     {feature}
                                 </span>
                             ))}
                         </div>
                         <div className="pt-4">
-                            <a
+                            <Link
                                 href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 bg-white text-indigo-900 px-8 py-4 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg hover:scale-105"
                             >
                                 جرب الأداة الآن
                                 <ArrowRight className="w-5 h-5 rtl:rotate-180" />
-                            </a>
+                            </Link>
                         </div>
                     </div>
                     <div className="relative group h-full flex items-center justify-center animate-fade-in-left">
@@ -135,24 +189,35 @@ const LoggedInHome: React.FC = () => {
                     </div>
                 </div>
             );
-        } else {
+        } else if (item.type === 'news') {
             // News Layout
             return (
                 <div className="grid md:grid-cols-2 gap-12 items-center h-full">
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/30 border border-pink-400/30 text-pink-100 text-sm font-medium">
                             <Newspaper className="w-4 h-4" />
-                            <span>أحدث الأخبار</span>
+                            <span>{item.customBadge || 'أحدث الأخبار'}</span>
                         </div>
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight line-clamp-3">
-                            {item.title}
+                            {item.titlePrefix ? <span className="block text-2xl mb-2 text-gray-300 font-normal">{item.titlePrefix}</span> : null}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-rose-300">{item.title}</span>
                         </h1>
                         <p className="text-lg text-indigo-100/80 leading-relaxed max-w-2xl line-clamp-3">
                             {item.content}
                         </p>
+                        {item.features && item.features.length > 0 && (
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                {item.features.map((feature: string, idx: number) => (
+                                    <span key={idx} className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-lg text-base text-indigo-100 border border-white/10 font-medium">
+                                        <Check className="w-4 h-4 text-pink-400" />
+                                        {feature}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                         <div className="pt-4">
                             <Link
-                                href={`/news/${item.id}`}
+                                href={item.url}
                                 className="inline-flex items-center gap-2 bg-pink-600 border border-pink-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-pink-700 transition-all shadow-lg hover:scale-105"
                             >
                                 اقرأ المزيد
@@ -178,8 +243,96 @@ const LoggedInHome: React.FC = () => {
                     </div>
                 </div>
             );
+        } else {
+            // External / Default Layout
+            return (
+                <div className="grid md:grid-cols-2 gap-12 items-center h-full">
+                    <div className="space-y-8 animate-fade-in-up">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/30 border border-purple-400/30 text-purple-100 text-sm font-medium">
+                            <Sparkles className="w-4 h-4" />
+                            <span>{item.customBadge || 'مميز'}</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                            {item.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">{item.title}</span>
+                        </h1>
+                        <p className="text-xl text-indigo-100/90 leading-relaxed max-w-2xl">
+                            {item.description}
+                        </p>
+                        {item.features && item.features.length > 0 && (
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                {item.features.map((feature: string, idx: number) => (
+                                    <span key={idx} className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-lg text-base text-indigo-100 border border-white/10 font-medium">
+                                        <Check className="w-4 h-4 text-purple-400" />
+                                        {feature}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        <div className="pt-4">
+                            <Link
+                                href={item.url || '#'}
+                                className="inline-flex items-center gap-2 bg-white text-indigo-900 px-8 py-4 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg hover:scale-105"
+                            >
+                                استكشف الآن
+                                <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="relative group h-full flex items-center justify-center animate-fade-in-left">
+                        <div className="w-full aspect-video bg-indigo-950/50 rounded-2xl border border-indigo-500/30 overflow-hidden shadow-2xl relative transform hover:scale-[1.02] transition-transform duration-500">
+                            <img
+                                src={item.imageUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/50 to-transparent"></div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
     };
+
+    // Fallback UI when no slides exist
+    const renderFallbackUI = () => (
+        <div className="grid md:grid-cols-2 gap-12 items-center h-full">
+            <div className="space-y-8 animate-fade-in-up">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 border border-blue-400/30 text-blue-100 text-sm font-medium">
+                    <Sparkles className="w-4 h-4" />
+                    <span>مستقبل الذكاء الاصطناعي</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                    مرحباً بك في <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300">Tolzy</span>
+                </h1>
+                <p className="text-xl text-indigo-100/90 leading-relaxed max-w-2xl">
+                    اكتشف أفضل أدوات الذكاء الاصطناعي، طور مهاراتك من خلال مسارات تعليمية متقدمة، وابنِ مشاريعك بكل سهولة.
+                </p>
+                <div className="pt-4 flex gap-4">
+                    <Link
+                        href="/tools"
+                        className="inline-flex items-center gap-2 bg-white text-indigo-900 px-8 py-4 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg hover:scale-105"
+                    >
+                        تصفح الأدوات
+                        <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+                    </Link>
+                </div>
+            </div>
+            <div className="relative group h-full flex items-center justify-center animate-fade-in-left">
+                <div className="w-full aspect-video relative flex items-center justify-center">
+                    {/* Animated Abstract Shape */}
+                    <div className="absolute w-72 h-72 bg-purple-600/30 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute w-64 h-64 bg-blue-600/30 rounded-full blur-3xl animate-pulse delay-700 right-10"></div>
+                    <div className="relative z-10 p-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+                        <img
+                            src="/image/tools/Logo.png"
+                            alt="Tolzy Logo"
+                            className="w-32 h-32 object-contain opacity-90 drop-shadow-2xl"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="w-full space-y-12 pb-12">
@@ -194,7 +347,7 @@ const LoggedInHome: React.FC = () => {
                 <div className="relative z-10 max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
                     {/* Slide Content */}
                     <div className={`transition-opacity duration-500 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-                        {currentSlide && renderSlideContent(currentSlide)}
+                        {slides.length > 0 ? (currentSlide && renderSlideContent(currentSlide)) : renderFallbackUI()}
                     </div>
                 </div>
 

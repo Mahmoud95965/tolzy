@@ -1,4 +1,5 @@
 export * from './tool';
+export * from './hero';
 
 export interface FilterOptions {
   category: import('./tool').ToolCategory | 'All';

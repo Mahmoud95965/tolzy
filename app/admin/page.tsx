@@ -15,6 +15,7 @@ import {
     ArrowRight,
     Shield,
     FileQuestion,
+    Layout,
 } from 'lucide-react';
 import { collection, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../src/config/firebase';
@@ -113,6 +114,15 @@ const AdminDashboard = () => {
             color: 'bg-amber-500',
             stat: stats.exams,
             statLabel: 'اختبار'
+        },
+        {
+            title: 'إدارة السلايدر',
+            description: 'التحكم في العروض الترويجية في الصفحة الرئيسية',
+            icon: Layout,
+            href: '/admin/hero',
+            color: 'bg-purple-500',
+            stat: null,
+            statLabel: 'سلايدر'
         }
     ];
 
